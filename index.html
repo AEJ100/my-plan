@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: 150 Quotes Edition</title>
+    <title>12-Week Masterpiece: Achievement Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -38,19 +38,17 @@
         }
         
         .dday-box { font-size: 2.8em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; }
-        .date-picker-group { margin-top: 10px; font-size: 0.8em; display: flex; align-items: center; gap: 5px; justify-content: center; }
-        .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 3px; border-radius: 6px; }
+        .date-picker-group { margin-top: 10px; font-size: 0.75em; display: flex; align-items: center; gap: 5px; justify-content: center; opacity: 0.8; }
+        .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 2px; border-radius: 4px; font-size: 0.9em; }
 
-        .quote-text { 
-            font-size: 1.2em; 
-            font-weight: 800; 
-            border-left: 5px solid var(--primary); 
-            padding-left: 15px; 
-            line-height: 1.4; 
-            cursor: pointer; 
-            word-break: keep-all;
-            text-align: left;
-        }
+        /* ⭐ 전체 성공률 시각화 강화 */
+        .total-per-container { margin-top: 12px; padding: 8px; background: var(--input-bg); border-radius: 12px; text-align: center; }
+        .total-per-label { font-size: 0.7em; font-weight: 800; color: var(--quote-sub); margin-bottom: 2px; display: block; }
+        .total-per-value { font-size: 1.6em; font-weight: 900; display: block; margin-bottom: 6px; }
+        .progress-track { width: 100%; height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; background: var(--primary); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s; }
+
+        .quote-text { font-size: 1.2em; font-weight: 800; border-left: 5px solid var(--primary); padding-left: 15px; line-height: 1.4; cursor: pointer; word-break: keep-all; text-align: left; }
         
         .timer-card { background: var(--primary); color: white; text-align: center; border: none; }
         .timer-display { font-size: 1.8em; font-weight: 800; margin: 2px 0; }
@@ -58,7 +56,7 @@
 
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; display: flex; justify-content: space-between; }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 50px; margin-top: 5px; }
+        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 40px; margin-top: 5px; }
 
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: all 0.3s ease; }
@@ -87,9 +85,15 @@
     <div class="dashboard">
         <div class="stat-card">
             <div id="dday-display" class="dday-box">D-84</div>
-            <div style="font-weight:bold; font-size:0.8em; text-align:center; margin-top:5px;">전체 성공률 <span id="total-per-text">0%</span></div>
+            <div class="total-per-container">
+                <span class="total-per-label">TOTAL PROGRESS</span>
+                <span id="total-per-text" class="total-per-value">0%</span>
+                <div class="progress-track">
+                    <div id="main-progress-bar" class="progress-bar"></div>
+                </div>
+            </div>
             <div class="date-picker-group">
-                <span>시작일:</span>
+                <span>Start:</span>
                 <input type="date" id="start-date" class="date-picker" onchange="data.startDate=this.value; save(); render();">
             </div>
         </div>
@@ -100,7 +104,7 @@
         </div>
 
         <div class="timer-card">
-            <div style="font-size:0.75em; font-weight:800; opacity:0.9;">집중 타이머</div>
+            <div style="font-size:0.75em; font-weight:800; opacity:0.9;">FOCUS TIMER</div>
             <div id="timer" class="timer-display">25:00</div>
             <button onclick="toggleTimer()" id="timer-btn" class="timer-btn">START</button>
         </div>
@@ -271,7 +275,7 @@
         { q: "끝까지 하는 사람이 결국 가져간다.", a: "성공 격언" }
     ];
 
-    const STORAGE_KEY = '12W_MASTER_FINAL_V5';
+    const STORAGE_KEY = '12W_MASTER_V6_PROGRESS';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -377,7 +381,23 @@
         let total = 0, done = 0;
         data.weeks.forEach(w => { total += w.todos.length; done += w.todos.filter(t => t.done).length; });
         const rate = total === 0 ? 0 : Math.round((done / total) * 100);
-        document.getElementById('total-per-text').innerText = `${rate}%`;
+        
+        const valDisplay = document.getElementById('total-per-text');
+        const bar = document.getElementById('main-progress-bar');
+        
+        valDisplay.innerText = `${rate}%`;
+        bar.style.width = `${rate}%`;
+
+        // 점수별 색상 피드백
+        let statusColor = 'var(--border)';
+        if(rate > 0) {
+            if(rate < 30) statusColor = 'var(--accent)'; 
+            else if(rate < 70) statusColor = '#ff9500'; 
+            else if(rate < 100) statusColor = 'var(--primary)'; 
+            else statusColor = 'var(--success)'; 
+        }
+        valDisplay.style.color = statusColor;
+        bar.style.backgroundColor = statusColor;
     }
 
     function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
