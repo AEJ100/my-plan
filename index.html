@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Official</title>
+    <title>12-Week Masterpiece: Grand Final</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -20,25 +20,22 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; }
         .container { max-width: 1000px; margin: auto; }
 
-        .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.5em; font-weight: 900; width: 60%; outline: none; margin-bottom: 10px; border-bottom: 2px solid transparent; }
+        .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 60%; outline: none; margin-bottom: 10px; border-bottom: 2px solid transparent; }
         .main-title-input:focus { border-bottom-color: var(--primary); }
 
+        /* 대시보드 및 숫자 초강조 */
         .dashboard { display: grid; grid-template-columns: 1fr 1.8fr 1.5fr; gap: 12px; margin-bottom: 15px; }
         .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
         
-        /* 숫자 두께 초강조 */
         .dday-box { font-size: 3em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; letter-spacing: -1.5px; }
         .mini-display { font-size: 1.8em; font-weight: 900; margin: 4px 0; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
         #total-per-text { font-size: 2.2em; }
-
-        .date-picker-group { margin-top: 8px; font-size: 0.7em; display: flex; align-items: center; gap: 3px; justify-content: center; opacity: 0.7; }
-        .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 2px; border-radius: 4px; }
 
         .dual-card { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
         .timer-part, .progress-part { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; padding: 10px; }
         .timer-part { background: var(--primary); color: white; }
         .progress-part { background: var(--input-bg); border: 1px solid var(--border); }
-        .mini-label { font-size: 0.7em; font-weight: 800; margin-bottom: 4px; opacity: 0.9; }
+        .mini-label { font-size: 0.75em; font-weight: 800; margin-bottom: 4px; opacity: 0.9; }
         .mini-btn { background: white; color: var(--primary); border: none; width: 100%; padding: 4px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 0.7em; }
         
         .progress-bar-container { width: 100%; height: 8px; background: var(--border); border-radius: 10px; margin-top: 8px; overflow: hidden; }
@@ -46,42 +43,50 @@
 
         .quote-text { font-size: 1.15em; font-weight: 800; border-left: 5px solid var(--primary); padding-left: 15px; line-height: 1.4; cursor: pointer; text-align: left; }
         
-        /* 비전 보드 강화 */
+        /* 비전 보드 가독성 강화 */
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
-        .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; display: flex; justify-content: space-between; }
+        .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; }
         .vision-item { margin-bottom: 25px; }
         .vision-label { font-size: 1.3em; font-weight: 900; color: var(--primary); display: block; margin-bottom: 10px; }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 90px; line-height: 1.6; font-size: 1.1em; }
+        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 95px; line-height: 1.6; font-size: 1.1em; }
 
-        /* 달력(주차 카드) 색상 복구 및 투두 */
+        /* 주차 카드 (색상 복구) */
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: 0.3s; }
+        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); }
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
-        
-        /* 별표 디자인: 흰색(기본) -> 노란색(클릭) */
         .star-icon { font-size: 1.4em; cursor: pointer; user-select: none; color: #ccc; transition: 0.2s; padding: 0 5px; }
         .star-icon.active { color: var(--gold); }
-        
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; }
 
-        /* 하단 컨트롤 바 */
-        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: var(--card); padding: 12px 24px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-        .dock-btn { padding: 8px 18px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.85em; transition: 0.2s; }
+        /* 하단 기능 독 */
+        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        .dock-btn { padding: 8px 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.8em; transition: 0.2s; white-space: nowrap; }
         .btn-backup { background: var(--success); }
         .btn-restore { background: #5856d6; }
+        .btn-pdf { background: #ff9500; }
         .btn-reset { background: #8e8e93; }
 
         #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 3000; }
+
+        /* PDF 출력 최적화 */
+        @media print {
+            .save-dock, #save-status, .mini-btn, .date-picker-group, summary, button { display: none !important; }
+            body { background: white !important; color: black !important; padding: 0; }
+            .container { max-width: 100%; }
+            .week-card { page-break-inside: avoid; border: 1px solid #ddd !important; margin-bottom: 10px; }
+            .vision-section { border: 1px solid #ddd !important; }
+            details { display: block !important; }
+        }
     </style>
 </head>
 <body data-theme="dark">
 
-<div id="save-status">저장 완료</div>
+<div id="save-status">자동 저장 완료</div>
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <input type="text" id="master-title" class="main-title-input" oninput="autoSaveField('title', this.value)" placeholder="제목을 입력하세요">
-        <button onclick="toggleTheme()" style="background:var(--card); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.75em; font-weight:800;">🌓 테마 전환</button>
+        <input type="text" id="master-title" class="main-title-input" oninput="autoSaveField('title', this.value)" placeholder="프로젝트 제목">
+        <button onclick="toggleTheme()" class="dock-btn" style="background:var(--card); color:var(--text); border:1px solid var(--border); font-size:0.7em;">🌓 테마 전환</button>
     </div>
 
     <div class="dashboard">
@@ -95,7 +100,7 @@
 
         <div class="quote-card" onclick="refreshQuote()">
             <div id="quote-display" class="quote-text">행동이 운명을 만든다.</div>
-            <div id="quote-author" style="color:var(--quote-sub); font-size:0.85em; margin-top:8px; margin-left:15px; font-weight:bold; text-align: left;">- 명언 -</div>
+            <div id="quote-author" style="color:var(--quote-sub); font-size:0.85em; margin-top:8px; margin-left:15px; font-weight:bold; text-align: left;"></div>
         </div>
 
         <div class="dual-card">
@@ -118,18 +123,17 @@
         <summary>🖼️ 비전 보드 & 핵심 목표</summary>
         <div style="padding: 20px;">
             <div id="vision-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;"></div>
-            
             <div class="vision-item">
                 <span class="vision-label">✨ 원대한 목표</span>
-                <textarea id="goal-long" class="goal-textarea" placeholder="인생의 목표를 입력하세요..." oninput="autoSaveGoal('long', this.value)"></textarea>
+                <textarea id="goal-long" class="goal-textarea" placeholder="인생의 북극성을 기록하세요..." oninput="autoSaveGoal('long', this.value)"></textarea>
             </div>
             <div class="vision-item">
                 <span class="vision-label">🎯 3년 목표</span>
-                <textarea id="goal-three" class="goal-textarea" placeholder="3년 후 나의 모습..." oninput="autoSaveGoal('three', this.value)"></textarea>
+                <textarea id="goal-three" class="goal-textarea" placeholder="3년 후의 나의 모습..." oninput="autoSaveGoal('three', this.value)"></textarea>
             </div>
             <div class="vision-item">
                 <span class="vision-label">🚀 12주 계획</span>
-                <textarea id="goal-twelve" class="goal-textarea" placeholder="이번 12주간의 핵심 실천 계획..." oninput="autoSaveGoal('twelve', this.value)"></textarea>
+                <textarea id="goal-twelve" class="goal-textarea" placeholder="이번 12주 동안 반드시 이룰 것..." oninput="autoSaveGoal('twelve', this.value)"></textarea>
             </div>
         </div>
     </details>
@@ -138,24 +142,23 @@
 </div>
 
 <div class="save-dock">
-    <button class="dock-btn btn-backup" onclick="exportData()">📤 백업 파일 저장</button>
-    <button class="dock-btn btn-restore" onclick="importData()">📥 데이터 복원</button>
-    <button class="dock-btn btn-reset" onclick="resetAll()">🧹 전체 초기화</button>
+    <button class="dock-btn btn-backup" onclick="exportData()">📤 백업</button>
+    <button class="dock-btn btn-restore" onclick="importData()">📥 복원</button>
+    <button class="dock-btn btn-pdf" onclick="window.print()">📄 PDF 저장</button>
+    <button class="dock-btn btn-reset" onclick="resetAll()">🧹 초기화</button>
 </div>
 
 <script>
-    // 150개 명언 로직 및 데이터 관리 기능은 유지
     const quotes = [
         { q: "혁신은 리더와 추종자를 구분한다.", a: "스티브 잡스" },
-        { q: "실행은 모든 것을 이긴다.", a: "마크 저커버그" },
-        { q: "이봐, 해봤어?", a: "정주영" },
-        { q: "단순함은 궁극의 정교함이다.", a: "레오나르도 다 빈치" },
         { q: "가장 개인적인 것이 가장 창의적인 것이다.", a: "봉준호" },
-        { q: "나를 죽이지 못하는 것은 나를 더 강하게 만든다.", a: "니체" },
+        { q: "이봐, 해봤어?", a: "정주영" },
+        { q: "실행은 모든 것을 이긴다.", a: "마크 저커버그" },
+        { q: "단순함은 궁극의 정교함이다.", a: "레오나르도 다 빈치" },
         { q: "끝까지 하는 사람이 결국 가져간다.", a: "성공 격언" }
     ];
 
-    const STORAGE_KEY = '12W_OFFICIAL_V8';
+    const STORAGE_KEY = '12W_MASTER_FINAL_86';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -231,7 +234,7 @@
         });
 
         if(focusIdx !== null) {
-            setTimeout(() => { const target = document.getElementById(`in-${focusIdx}`); if(target) target.focus(); }, 10);
+            setTimeout(() => { const t = document.getElementById(`in-${focusIdx}`); if(t) t.focus(); }, 10);
         }
         calculateTotalPercent(); updateDDay();
     }
@@ -243,13 +246,13 @@
     function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
     function updateDDay() { const start = new Date(data.startDate); const end = new Date(start); end.setDate(start.getDate() + 84); const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
     function refreshQuote() { const rq = quotes[Math.floor(Math.random() * quotes.length)]; document.getElementById('quote-display').innerText = `"${rq.q}"`; document.getElementById('quote-author').innerText = `- ${rq.a}`; }
-    function toggleTimer() { if(isRunning) { clearInterval(timerInterval); document.getElementById('timer-btn').innerText = "START"; } else { timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("집중 종료!"); timeLeft=1500; updateTimerDisplay(); isRunning=false; } }, 1000); document.getElementById('timer-btn').innerText = "STOP"; } isRunning = !isRunning; }
+    function toggleTimer() { if(isRunning) { clearInterval(timerInterval); document.getElementById('timer-btn').innerText = "START"; } else { timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("집중 시간 종료!"); timeLeft=1500; updateTimerDisplay(); isRunning=false; } }, 1000); document.getElementById('timer-btn').innerText = "STOP"; } isRunning = !isRunning; }
     function updateTimerDisplay() { const m = Math.floor(timeLeft / 60), s = timeLeft % 60; document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; }
     function handleImage(idx) { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { data.images[idx] = r.result; save(); render(); }; r.readAsDataURL(e.target.files[0]); }; i.click(); }
     function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
-    function exportData() { const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `12W_Backup.json`; a.click(); }
-    function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { data = JSON.parse(r.result); save(); render(); }; r.readAsText(e.target.files[0]); }; i.click(); }
-    function resetAll() { if(confirm("초기화할까요?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+    function exportData() { const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `12W_Masterpiece_Backup.json`; a.click(); }
+    function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { try { data = JSON.parse(r.result); save(); render(); } catch(e) { alert("잘못된 파일입니다."); } }; r.readAsText(e.target.files[0]); }; i.click(); }
+    function resetAll() { if(confirm("모든 데이터를 초기화할까요?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
 
     refreshQuote(); render();
 </script>
