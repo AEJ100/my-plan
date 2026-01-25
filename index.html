@@ -1,188 +1,45 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Final</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
-            --primary: #0071e3; --success: #34c759; --accent: #ff3b30; --gold: #ffcc00;
-            --border: #d2d2d7; --quote-sub: #86868b;
-        }
-        [data-theme='dark'] {
-            --bg: #000000; --card: #1c1c1e; --text: #f5f5f7;
-            --primary: #0a84ff; --success: #30d158; --accent: #ff453a;
-            --border: #3a3a3c; --quote-sub: #a1a1a6;
-        }
-        body { font-family: -apple-system, sans-serif; margin: 0; padding: 20px; background-color: var(--bg); color: var(--text); padding-bottom: 140px; transition: 0.3s; }
-        .container { max-width: 1000px; margin: auto; }
-        .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); position: relative; }
-        
-        /* 상단 레이아웃 */
-        .header-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 30px; align-items: center; margin-bottom: 30px; }
-        .dday-big { font-size: 3.5em; font-weight: 900; color: var(--accent); line-height: 1; letter-spacing: -2px; }
-        .progress-bar-bg { background: var(--border); height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px; }
-        .progress-bar-fill { height: 100%; background: var(--primary); transition: 0.8s cubic-bezier(0.075, 0.82, 0.165, 1); width: 0%; }
-
-        .timer-box { background: var(--primary); color: white; padding: 15px; border-radius: 20px; text-align: center; min-width: 140px; box-shadow: 0 10px 20px rgba(0,113,227,0.2); }
-        .quote-side { background: rgba(0,113,227,0.05); border-left: 4px solid var(--primary); padding: 15px; border-radius: 0 15px 15px 0; min-height: 80px; display: flex; flex-direction: column; justify-content: center; }
-
-        /* 비전보드 & 목표 */
-        .vision-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
-        .vision-img { aspect-ratio: 1/1; border-radius: 15px; border: 2px dashed var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg); }
-        .vision-img img { width: 100%; height: 100%; object-fit: cover; }
-        .goal-label { font-weight:bold; color:var(--primary); font-size:0.85em; display:block; margin-bottom:5px; }
-        .goal-area { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: 1em; background: var(--bg); color: var(--text); resize: vertical; min-height: 80px; margin-bottom: 15px; font-family: inherit; box-sizing: border-box; }
-
-        /* 투두 리스트 드래그 및 수정 */
-        .todo-item { display: flex; align-items: center; background: var(--bg); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); cursor: grab; }
-        .todo-item.dragging { opacity: 0.5; border: 2px dashed var(--primary); }
-        .todo-edit-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-family: inherit; font-size: 0.95em; }
-        .star-btn { cursor: pointer; font-size: 1.2em; color: #ccc; border: none; background: none; transition: 0.2s; padding: 0; }
-        .star-btn.active { color: var(--gold); }
-
-        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
-        .save-dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 1000; background: var(--card); padding: 12px 25px; border-radius: 50px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); border: 1px solid var(--border); }
-        button { cursor: pointer; border: none; border-radius: 10px; font-weight: bold; padding: 10px 15px; transition: 0.2s; }
-        details { border: 1px solid var(--border); border-radius: 15px; margin-bottom: 20px; background: var(--card); overflow: hidden; }
-        summary { padding: 15px; font-weight: bold; cursor: pointer; background: var(--bg); }
-    </style>
-</head>
-<body data-theme="light">
-
-<div class="container">
-    <div style="display:flex; justify-content:space-between; margin-bottom: 20px; align-items:center;">
-        <h1 id="main-title" onclick="editTitle()" style="cursor:pointer; margin:0; font-size: 1.5em;">🏆 12-Week Masterpiece</h1>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:0.85em; font-weight:bold;">시작일:</span>
-            <input type="date" id="start-date" onchange="data.startDate=this.value; save(); render();" style="border:1px solid var(--border); padding:5px; border-radius:8px; background:var(--card); color:var(--text);">
-            <button onclick="toggleTheme()" style="background:var(--text); color:var(--card);">🌓</button>
-        </div>
-    </div>
-
-    <div class="header-grid">
-        <div>
-            <div id="dday-display" class="dday-big">D-Day</div>
-            <div style="margin-top:10px; font-weight:bold; color:var(--primary); font-size:0.9em;">12주 통합 성공률: <span id="total-per-text">0%</span></div>
-            <div class="progress-bar-bg"><div id="total-per-bar" class="progress-bar-fill"></div></div>
-        </div>
-        <div class="quote-side">
-            <div id="quote-display" style="font-size: 0.95em; font-weight: 500; word-break: keep-all;">"로딩 중..."</div>
-            <div id="quote-author" style="font-size: 0.8em; color: var(--quote-sub); margin-top: 5px;"></div>
-        </div>
-        <div class="timer-box">
-            <div id="timer" style="font-size: 1.8em; font-weight: bold;">25:00</div>
-            <button onclick="toggleTimer()" id="timer-btn" style="width:100%; margin-top:5px; background:white; color:var(--primary); font-size:0.8em;">START</button>
-        </div>
-    </div>
-
-    <details open>
-        <summary>🖼️ 비전 보드 & 3단계 목표 시스템</summary>
-        <div class="vision-grid" id="vision-gallery"></div>
-        <div style="padding: 0 20px 20px 20px;">
-            <label class="goal-label">🌟 원대한 목표 (장기 비전)</label>
-            <textarea id="goal-long" class="goal-area" placeholder="내 인생의 궁극적인 비전을 적으세요..." onchange="data.goals.long=this.value; save();"></textarea>
-            
-            <label class="goal-label">🎯 3년 목표</label>
-            <textarea id="goal-3yr" class="goal-area" placeholder="3년 뒤 구체적으로 이루고 싶은 모습은?" onchange="data.goals.three=this.value; save();"></textarea>
-            
-            <label class="goal-label">🚀 12주 핵심 계획</label>
-            <textarea id="goal-12wk" class="goal-area" placeholder="이번 12주 동안 집중할 핵심 성과 지표(KPI)는?" onchange="data.goals.twelve=this.value; save();"></textarea>
-        </div>
-    </details>
-
-    <div class="card">
-        <h3 style="margin:0 0 15px 0; font-size: 1em;">📊 주간 성공 추이</h3>
-        <canvas id="weeklyChart" style="height:150px;"></canvas>
-    </div>
-
-    <div class="week-grid" id="board"></div>
-</div>
-
-<div class="save-dock">
-    <button style="background:var(--success); color:white;" onclick="manualSave()">💾 저장</button>
-    <button style="background:var(--primary); color:white;" onclick="exportData()">📤 백업</button>
-    <button style="background:#5856d6; color:white;" onclick="importData()">📥 복원</button>
-    <button style="background:#8e8e93; color:white;" onclick="resetAll()">🧹 초기화</button>
-</div>
-
 <script>
-    const quotes = [
-        { q: "시련은 있어도 실패는 없다.", a: "정주영 (현대그룹)" },
-        { q: "운을 벌려고 하지 말고 때를 벌어라.", a: "이병철 (삼성그룹)" },
-        { q: "혁신은 리더와 추종자를 구분하는 잣대입니다.", a: "스티브 잡스" },
-        { q: "가장 큰 위험은 아무것도 감수하지 않는 것이다.", a: "마크 저커버그" },
-        { q: "잠자는 동안에도 돈이 들어오는 방법을 찾아라.", a: "워런 버핏" },
-        { q: "미래를 예측하는 가장 좋은 방법은 직접 만드는 것이다.", a: "피터 드러커" }
-    ];
-
-    let data = JSON.parse(localStorage.getItem('12WeekFinalMasterV2')) || {
-        theme: 'light', title: "🏆 12-Week Masterpiece", startDate: new Date().toISOString().split('T')[0],
-        goals: { long: "", three: "", twelve: "" }, images: [null, null, null],
-        weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], review: "" }))
-    };
-
-    let timerInterval, timeLeft = 1500, isRunning = false, myChart;
-
-    function save() { localStorage.setItem('12WeekFinalMasterV2', JSON.stringify(data)); updateChart(); calculateTotalPercent(); }
-    function manualSave() { save(); confetti(); alert("성공적으로 저장되었습니다!"); }
-    function resetAll() { if(confirm("주의! 모든 데이터와 사진이 영구 삭제됩니다. 초기화할까요?")) { localStorage.removeItem('12WeekFinalMasterV2'); location.reload(); } }
-    function toggleTheme() { data.theme = data.theme === 'light' ? 'dark' : 'light'; save(); render(); }
-    function editTitle() { const v = prompt('제목 수정:', data.title); if(v) { data.title = v; save(); render(); } }
-
-    function calculateTotalPercent() {
-        let total = 0, done = 0;
-        data.weeks.forEach(w => { total += w.todos.length; done += w.todos.filter(t => t.done).length; });
-        const per = total === 0 ? 0 : Math.round((done / total) * 100);
-        document.getElementById('total-per-text').innerText = `${per}%`;
-        document.getElementById('total-per-bar').style.width = `${per}%`;
-    }
-
-    // 드래그 앤 드롭
-    let dragStartIndex, dragStartWeek;
-    function onDragStart(weekIdx, todoIdx) { dragStartWeek = weekIdx; dragStartIndex = todoIdx; event.target.classList.add('dragging'); }
-    function onDragOver(e) { e.preventDefault(); }
-    function onDrop(weekIdx, todoIdx) {
-        if (dragStartWeek !== weekIdx) return;
-        const items = data.weeks[weekIdx].todos;
-        const draggedItem = items.splice(dragStartIndex, 1)[0];
-        items.splice(todoIdx, 0, draggedItem);
-        save(); render();
-    }
+    // ... (중략: 기존 데이터 및 변수들)
 
     function render() {
-        document.body.setAttribute('data-theme', data.theme);
-        document.getElementById('main-title').innerText = data.title;
-        document.getElementById('start-date').value = data.startDate;
-        document.getElementById('goal-long').value = data.goals.long || "";
-        document.getElementById('goal-3yr').value = data.goals.three || "";
-        document.getElementById('goal-12wk').value = data.goals.twelve || "";
-
-        const q = quotes[Math.floor(Math.random()*quotes.length)];
-        document.getElementById('quote-display').innerText = `"${q.q}"`;
-        document.getElementById('quote-author').innerText = `- ${q.a}`;
-
+        // (기존 렌더링 로직 유지하며 아래 내용 추가/수정)
+        
+        const now = new Date();
         const start = new Date(data.startDate);
-        const end = new Date(start); end.setDate(start.getDate() + 84);
-        const diff = Math.ceil((end - new Date()) / 86400000);
-        document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁 완료";
-
-        const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
-        data.images.forEach((img, i) => {
-            gallery.innerHTML += `<div class="vision-img" onclick="handleImage(${i})">${img ? `<img src="${img}">` : '<span style="font-size:2em; color:var(--border);">+</span>'}</div>`;
-        });
+        // 현재가 시작일로부터 몇 번째 주인지 계산 (0부터 시작)
+        const currentWeekIdx = Math.floor((now - start) / (1000 * 60 * 60 * 24 * 7));
 
         const board = document.getElementById('board'); board.innerHTML = '';
         data.weeks.forEach((w, wIdx) => {
+            const isCurrentWeek = wIdx === currentWeekIdx;
             const done = w.todos.filter(t => t.done).length, total = w.todos.length;
             const per = total === 0 ? 0 : Math.round((done / total) * 100);
+            
+            // 현재 주차라면 카드 테두리에 강조 효과를 줍니다.
+            const highlightStyle = isCurrentWeek ? 'border: 2px solid var(--primary); transform: scale(1.02);' : '';
+
             board.innerHTML += `
-                <div class="card">
+                <div class="card" style="${highlightStyle}">
+                    ${isCurrentWeek ? '<span style="background:var(--primary); color:white; padding:2px 8px; border-radius:10px; font-size:0.7em; position:absolute; top:-10px; left:20px;">CURRENT WEEK</span>' : ''}
                     <h3 style="margin-top:0; font-size:1.1em;">${w.title} <span style="float:right; color:var(--primary); font-size:0.8em;">${per}%</span></h3>
                     <div ondragover="onDragOver(event)">
                         ${w.todos.map((t, tIdx) => `
                             <div class="todo-item" draggable="true" ondragstart="onDragStart(${wIdx}, ${tIdx})" ondrop="onDrop(${wIdx}, ${tIdx})">
-                                <button class="star-btn ${t.important?'active':''}" onclick="toggleStar(${wIdx}, ${tIdx})">★</
+                                <button class="star-btn ${t.important?'active':''}" onclick="toggleStar(${wIdx}, ${tIdx})">★</button>
+                                <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo(${wIdx}, ${tIdx})">
+                                <input type="text" class="todo-edit-input" value="${t.text}" onchange="editTodoText(${wIdx}, ${tIdx}, this.value)" style="${t.done?'text-decoration:line-through;opacity:0.4':''}">
+                                <button onclick="deleteTodo(${wIdx}, ${tIdx})" style="background:none; color:var(--accent); font-size:1.2em;">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <input type="text" id="in-${wIdx}" onkeypress="if(event.key==='Enter') addTodo(${wIdx})" placeholder="할 일 입력 (Enter)" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+                        <button onclick="addTodo(${wIdx})" style="background:var(--primary); color:white;">+</button>
+                    </div>
+                    <textarea placeholder="주간 회고 기록..." onchange="data.weeks[${wIdx}].review=this.value; save();" style="width:100%; height:60px; margin-top:15px; border-radius:10px; border:1px solid var(--border); padding:8px; font-size:0.85em; background:var(--bg); color:var(--text); font-family:inherit;">${w.review || ''}</textarea>
+                </div>`;
+        });
+        updateChart(); calculateTotalPercent();
+    }
+    // ... (나머지 함수 유지)
+</script>
