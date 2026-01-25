@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Final Elite V9.0</title>
+    <title>12-Week Masterpiece: Final Elite</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -23,19 +23,10 @@
         .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 60%; outline: none; margin-bottom: 10px; border-bottom: 2px solid transparent; }
         .main-title-input:focus { border-bottom-color: var(--primary); }
 
-        /* 대시보드 */
         .dashboard { display: grid; grid-template-columns: 1fr 1.8fr 1.5fr; gap: 12px; margin-bottom: 15px; }
-        .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
+        .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
         
-        .dday-box { font-size: 3.2em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; letter-spacing: -1px; margin-bottom: 15px; }
-        
-        /* 날짜 선택기 디자인 수정 */
-        .date-picker-group { display: flex; align-items: center; justify-content: center; gap: 5px; background: var(--input-bg); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.85em; font-weight: bold; }
-        .date-picker { border: none; background: transparent; color: var(--text); font-family: inherit; cursor: pointer; outline: none; }
-        
-        /* 명언 파란 세로줄 디자인 복구 */
-        .quote-text { font-size: 1.1em; font-weight: 800; border-left: 5px solid var(--primary); padding-left: 18px; line-height: 1.5; cursor: pointer; text-align: left; word-break: keep-all; }
-        
+        .dday-box { font-size: 3em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; letter-spacing: -1.5px; }
         .mini-display { font-size: 1.8em; font-weight: 900; margin: 4px 0; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
         #total-per-text { font-size: 2.2em; }
 
@@ -49,25 +40,28 @@
         .progress-bar-container { width: 100%; height: 8px; background: var(--border); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar-fill { height: 100%; width: 0%; transition: width 0.6s ease, background-color 0.3s; }
 
-        /* 투두 리스트 정렬 수정 */
-        .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 10px; border: 1px solid var(--border); }
-        .star-icon { font-size: 1.4em; cursor: pointer; user-select: none; color: #ccc; display: flex; align-items: center; height: 24px; line-height: 1; margin-top: -2px; }
-        .star-icon.active { color: var(--gold); }
-        .todo-checkbox { width: 1.3em; height: 1.3em; cursor: pointer; accent-color: var(--success); flex-shrink: 0; }
-        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; }
-
-        /* 비전 보드 */
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; }
-        .vision-label { font-size: 1.2em; font-weight: 900; color: var(--primary); display: block; margin-bottom: 8px; }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 90px; font-size: 1.05em; }
+        .vision-label { font-size: 1.3em; font-weight: 900; color: var(--primary); display: block; margin-bottom: 10px; }
+        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 95px; line-height: 1.6; font-size: 1.1em; }
 
+        /* 주차별 카드 및 투두 스타일 수정 */
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); }
+        
+        .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 10px; border: 1px solid var(--border); }
+        
+        /* 별표 크기 및 정렬 수정 */
+        .star-icon { font-size: 1.4em; cursor: pointer; user-select: none; color: #ccc; transition: 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .star-icon.active { color: var(--gold); }
+        
+        /* 체크박스 크기를 별표와 맞춤 */
+        .todo-checkbox { width: 1.2em; height: 1.2em; cursor: pointer; accent-color: var(--success); flex-shrink: 0; }
+        
+        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; display: flex; align-items: center; }
 
-        /* 하단 기능 바 */
         .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-        .dock-btn { padding: 8px 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.8em; }
+        .dock-btn { padding: 8px 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.8em; transition: 0.2s; }
         .btn-backup { background: var(--success); }
         .btn-restore { background: #5856d6; }
         .btn-pdf { background: #ff9500; }
@@ -99,13 +93,12 @@
             <div class="date-picker-group">
                 <span>시작:</span>
                 <input type="date" id="start-date" class="date-picker" onchange="data.startDate=this.value; save(); render();">
-                <span>🗓️</span>
             </div>
         </div>
 
         <div class="quote-card" onclick="refreshQuote()">
             <div id="quote-display" class="quote-text">행동이 운명을 만든다.</div>
-            <div id="quote-author" style="color:var(--quote-sub); font-size:0.85em; margin-top:10px; margin-left:23px; font-weight:bold;"></div>
+            <div id="quote-author" style="color:var(--quote-sub); font-size:0.85em; margin-top:8px; margin-left:15px; font-weight:bold; text-align: left;"></div>
         </div>
 
         <div class="dual-card">
@@ -145,27 +138,16 @@
 </div>
 
 <script>
-    // 150개 명언 데이터 (중복 방지 셔플 로직 적용)
-    const allQuotes = [
-        {q:"가장 개인적인 것이 가장 창의적인 것이다.", a:"봉준호"},
-        {q:"혁신은 리더와 추종자를 구분한다.", a:"스티브 잡스"},
-        {q:"이봐, 해봤어?", a:"정주영"},
-        {q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"},
-        {q:"단순함은 궁극의 정교함이다.", a:"레오나르도 다 빈치"},
-        {q:"끝까지 하는 사람이 결국 가져간다.", a:"성공 격언"},
-        {q:"어제보다 나은 오늘을 살아라.", a:"무명"},
-        {q:"실패는 성공을 향한 디딤돌일 뿐이다.", a:"에디슨"},
-        {q:"당신의 시간은 한정되어 있다. 타인의 삶을 사느라 허비하지 마라.", a:"스티브 잡스"},
-        {q:"위대한 일을 하는 유일한 방법은 당신이 하는 일을 사랑하는 것이다.", a:"스티브 잡스"},
-        {q:"꿈을 기록하는 것이 목표의 시작이다.", a:"성공의 법칙"},
-        {q:"시작이 반이다.", a:"한국 속담"},
-        {q:"승자는 결코 멈추지 않는다.", a:"빈스 롬바르디"},
-        {q:"지옥을 걷고 있다면 계속 걸어가라.", a:"윈스턴 처칠"},
-        {q:"미래를 예측하는 가장 좋은 방법은 미래를 창조하는 것이다.", a:"피터 드러커"}
-        // ... (150개 분량의 명언 데이터가 포함됨)
+    const quotes = [
+        { q: "혁신은 리더와 추종자를 구분한다.", a: "스티브 잡스" },
+        { q: "가장 개인적인 것이 가장 창의적인 것이다.", a: "봉준호" },
+        { q: "실행은 모든 것을 이긴다.", a: "마크 저커버그" },
+        { q: "이봐, 해봤어?", a: "정주영" },
+        { q: "나를 죽이지 못하는 것은 나를 더 강하게 만든다.", a: "니체" },
+        { q: "끝까지 하는 사람이 결국 가져간다.", a: "성공 격언" }
     ];
 
-    const STORAGE_KEY = '12W_MASTER_ELITE_V90';
+    const STORAGE_KEY = '12W_MASTER_ELITE_V89';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -237,7 +219,7 @@
                         `).join('')}
                     </div>
                     <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." 
+                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가 (엔터)..." 
                             onkeypress="if(event.key==='Enter') addTodo(${wIdx})" 
                             style="flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.9em;">
                     </div>
@@ -253,33 +235,15 @@
     function toggleStar(wIdx, tIdx) { const item = data.weeks[wIdx].todos[tIdx]; item.important = !item.important; if(item.important) { data.weeks[wIdx].todos.splice(tIdx, 1); data.weeks[wIdx].todos.unshift(item); } save(); render(); }
     function editTodoText(wIdx, tIdx, val) { data.weeks[wIdx].todos[tIdx].text = val; save(); }
     function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
-    
-    function updateDDay() { 
-        const start = new Date(data.startDate); 
-        const end = new Date(start); 
-        end.setDate(start.getDate() + 84); 
-        const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)); 
-        document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; 
-    }
-
-    // 중복 방지 셔플 알고리즘 적용
-    let currentQuoteIndex = -1;
-    function refreshQuote() {
-        let nextIdx;
-        do { nextIdx = Math.floor(Math.random() * allQuotes.length); } while (nextIdx === currentQuoteIndex);
-        currentQuoteIndex = nextIdx;
-        const rq = allQuotes[currentQuoteIndex];
-        document.getElementById('quote-display').innerText = `"${rq.q}"`;
-        document.getElementById('quote-author').innerText = `- ${rq.a}`;
-    }
-
+    function updateDDay() { const start = new Date(data.startDate); const end = new Date(start); end.setDate(start.getDate() + 84); const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
+    function refreshQuote() { const rq = quotes[Math.floor(Math.random() * quotes.length)]; document.getElementById('quote-display').innerText = `"${rq.q}"`; document.getElementById('quote-author').innerText = `- ${rq.a}`; }
     function toggleTimer() { if(isRunning) { clearInterval(timerInterval); document.getElementById('timer-btn').innerText = "START"; } else { timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("집중 시간 종료!"); timeLeft=1500; updateTimerDisplay(); isRunning=false; } }, 1000); document.getElementById('timer-btn').innerText = "STOP"; } isRunning = !isRunning; }
     function updateTimerDisplay() { const m = Math.floor(timeLeft / 60), s = timeLeft % 60; document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; }
     function handleImage(idx) { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { data.images[idx] = r.result; save(); render(); }; r.readAsDataURL(e.target.files[0]); }; i.click(); }
     function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
     function exportData() { const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `12W_Elite_Backup.json`; a.click(); }
     function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { try { data = JSON.parse(r.result); save(); render(); } catch(e) { alert("잘못된 파일입니다."); } }; r.readAsText(e.target.files[0]); }; i.click(); }
-    function resetAll() { if(confirm("초기화할까요?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+    function resetAll() { if(confirm("데이터를 초기화할까요?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
 
     refreshQuote(); render();
 </script>
