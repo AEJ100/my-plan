@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>나만의 12주 성장 대시보드</title>
+    <title>나의 12주 성장 대시보드</title>
     <style>
-        :root { --primary: #4a90e2; --success: #2ecc71; --bg: #f8f9fa; }
+        :root { --primary: #4a90e2; --success: #2ecc71; --bg: #f8f9fa; --accent: #ff7675; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
         .container { max-width: 1000px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -12,31 +12,37 @@
         .editable { cursor: pointer; border-bottom: 1px dashed var(--primary); }
         .editable:hover { background: #f0f7ff; }
         
-        /* 진행바 스타일 */
+        /* 진행바 */
         .prog-container { background: #eee; border-radius: 10px; height: 15px; width: 100%; margin: 10px 0; overflow: hidden; }
         .prog-bar { background: var(--success); height: 100%; width: 0%; transition: 0.3s; }
         
-        /* 할 일 목록 스타일 */
+        /* 주차별 카드 */
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .todo-list { list-style: none; padding: 0; }
         .todo-item { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
-        .todo-item input[type="checkbox"] { width: 18px; height: 18px; }
         .todo-text { flex-grow: 1; }
         
-        /* 입력창 및 버튼 */
+        /* 응원 메시지 스타일 */
+        .cheer-msg { font-size: 0.85em; color: var(--accent); font-weight: bold; margin-bottom: 10px; min-height: 1.2em; }
+        
+        /* 일기장 스타일 */
+        .diary-box { margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .diary-box label { font-size: 0.8em; color: #888; display: block; margin-bottom: 5px; }
+        .diary-input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px; font-size: 0.9em; box-sizing: border-box; }
+
         .add-box { display: flex; gap: 5px; margin-top: 10px; }
         input[type="text"] { flex-grow: 1; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
         button { cursor: pointer; border: none; border-radius: 4px; padding: 5px 10px; background: var(--primary); color: white; }
-        button.del { background: #ff7675; padding: 2px 6px; font-size: 11px; }
+        button.del { background: var(--accent); padding: 2px 6px; font-size: 11px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="card">
-        <h2>🔭 비전 보드 (클릭해서 수정)</h2>
-        <p><strong>장기 비전:</strong> <span class="editable" id="v1" onclick="edit(this)">나만의 꿈을 적으세요</span></p>
-        <p><strong>3년 목표:</strong> <span class="editable" id="v2" onclick="edit(this)">3년 뒤 내 모습</span></p>
+        <h2>🔭 비전 보드 (클릭수정)</h2>
+        <p><strong>장기 비전:</strong> <span class="editable" id="v1" onclick="edit(this)">꿈을 적으세요</span></p>
+        <p><strong>3년 목표:</strong> <span class="editable" id="v2" onclick="edit(this)">3년 뒤 모습</span></p>
         <p><strong>12주 핵심:</strong> <span class="editable" id="v3" onclick="edit(this)">이번 12주 목표</span></p>
     </div>
 
@@ -49,10 +55,17 @@
 </div>
 
 <script>
-    // 데이터 저장소 (새로고침해도 유지되게 함)
+    const cheerQuotes = [
+        "실패해도 괜찮아! 내일 다시 도전하면 돼 🌈",
+        "오늘 조금 부족했어도 넌 여전히 멋져! ✨",
+        "한 걸음이 늦어도 괜찮아, 멈추지 않는 게 중요해 🐢",
+        "완벽하지 않아도 좋아! 시도했다는 게 최고야 👍",
+        "오늘의 실수는 내일의 더 큰 성장이 될 거야 🌱"
+    ];
+
     let data = JSON.parse(localStorage.getItem('myPlanData')) || {
         visions: ["장기 비전 내용을 적으세요", "3년 후 목표를 적으세요", "12주 핵심 목표를 적으세요"],
-        weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [] }))
+        weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], diary: "" }))
     };
 
     function save() {
@@ -63,11 +76,8 @@
     function edit(el) {
         let val = prompt("수정할 내용을 입력하세요:", el.innerText);
         if(val) {
-            if(el.id.startsWith('v')) {
-                data.visions[parseInt(el.id[1])-1] = val;
-            } else if(el.id.startsWith('t')) {
-                data.weeks[parseInt(el.id.split('-')[1])].title = val;
-            }
+            if(el.id.startsWith('v')) data.visions[parseInt(el.id[1])-1] = val;
+            else if(el.id.startsWith('t')) data.weeks[parseInt(el.id.split('-')[1])].title = val;
             save();
         }
     }
@@ -90,16 +100,18 @@
         save();
     }
 
+    function updateDiary(weekIdx, text) {
+        data.weeks[weekIdx].diary = text;
+        localStorage.setItem('myPlanData', JSON.stringify(data));
+    }
+
     function render() {
-        // 비전 업데이트
         document.getElementById('v1').innerText = data.visions[0];
         document.getElementById('v2').innerText = data.visions[1];
         document.getElementById('v3').innerText = data.visions[2];
 
-        // 주차별 카드 생성
         let board = document.getElementById('board');
         board.innerHTML = '';
-        
         let totalAll = 0, totalDone = 0;
 
         data.weeks.forEach((week, wIdx) => {
@@ -110,9 +122,13 @@
             totalAll += weekTotal;
             totalDone += weekDone;
 
+            // 랜덤 응원 메시지 (달성률 100% 미만일 때만)
+            let quote = weekPercent < 100 && weekTotal > 0 ? cheerQuotes[wIdx % cheerQuotes.length] : "모두 완료! 정말 대단해! 🎉";
+
             let html = `
                 <div class="card">
                     <h3><span class="editable" id="t-${wIdx}" onclick="edit(this)">${week.title}</span> <small>${weekPercent}%</small></h3>
+                    <div class="cheer-msg">${quote}</div>
                     <div class="prog-container"><div class="prog-bar" style="width:${weekPercent}%"></div></div>
                     <ul class="todo-list">
             `;
@@ -133,11 +149,16 @@
                     <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." onkeypress="if(event.keyCode==13) addTodo(${wIdx})">
                     <button onclick="addTodo(${wIdx})">+</button>
                 </div>
+                <div class="diary-box">
+                    <label>📝 한 줄 일기 / 회고</label>
+                    <input type="text" class="diary-input" value="${week.diary || ''}" 
+                           placeholder="오늘의 기분을 적어보세요" 
+                           onchange="updateDiary(${wIdx}, this.value)">
+                </div>
             </div>`;
             board.innerHTML += html;
         });
 
-        // 전체 진행바 업데이트
         let totalPercent = totalAll === 0 ? 0 : Math.round((totalDone / totalAll) * 100);
         document.getElementById('total-percent').innerText = totalPercent + "%";
         document.getElementById('total-bar').style.width = totalPercent + "%";
