@@ -3,32 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>12주 프리미엄 대시보드</title>
+    <title>12주 울트라 마스터피스</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
-            --primary: #0071e3; --success: #34c759; --accent: #ff3b30;
+            --primary: #0071e3; --success: #34c759; --accent: #ff3b30; --gold: #ffcc00;
         }
         [data-theme='dark'] {
             --bg: #000000; --card: #1c1c1e; --text: #f5f5f7;
             --primary: #0a84ff; --success: #30d158; --accent: #ff453a;
         }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; transition: 0.3s; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; transition: 0.3s; padding-bottom: 100px; }
         .container { max-width: 1100px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 25px; position: relative; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 25px; }
+        .main-title { font-size: 2.2em; font-weight: bold; cursor: pointer; border-bottom: 3px dashed var(--primary); }
+        .streak-badge { background: linear-gradient(135deg, #ff9500, #ff5e3a); color: white; padding: 8px 15px; border-radius: 15px; font-weight: bold; font-size: 0.9em; box-shadow: 0 4px 10px rgba(255, 149, 0, 0.3); }
         
-        /* 제목 및 날짜 설정 영역 */
-        .main-title { font-size: 2em; font-weight: bold; cursor: pointer; border-bottom: 2px dashed var(--primary); }
-        .date-setting { font-size: 0.9em; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 10px; display: inline-block; margin-top: 10px; }
-        
-        /* 이미지/비전 보드 */
         .vision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
         .vision-img-card { position: relative; aspect-ratio: 1/1; background: #eee; border-radius: 15px; overflow: hidden; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; }
         .vision-img-card img { width: 100%; height: 100%; object-fit: cover; }
+
+        .prog-container { background: rgba(0,0,0,0.1); border-radius: 10px; height: 14px; margin: 15px 0; overflow: hidden; }
+        .prog-bar { background: linear-gradient(90deg, var(--primary), var(--success)); height: 100%; width: 0%; transition: 0.8s ease-in-out; }
         
-        /* 하단 고정 저장 버튼 */
-        .save-dock { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
-        .btn-main-save { background: var(--success); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-size:
+        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 25px; }
+        .todo-item { display: flex; align-items: center; background: rgba(0,0,0,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; gap: 10px; }
+        
+        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 10px 20px; border-radius: 40px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        button { cursor: pointer; border: none; border-radius: 20px; font-weight: bold; transition: 0.2s; }
+        .btn-save { background: var(--success); color: white; padding: 10px 25px; }
+        .btn-backup { background: var(--primary); color: white; padding: 10px 20px; }
+        
+        .review-box { margin-top: 15px; background: rgba(0,113,227,0.05); padding: 10px; border-radius: 10px; }
+        .review-title { font-size: 0.8em; font-weight: bold; color: var(--primary); margin-bottom: 5px; display: block; }
+        textarea { width: 100%; border: none; background: transparent; color: var(--text); resize: none; font-size: 0.9em; height: 50px; }
+    </style>
+</head>
+<body data-theme="light">
+
+<div class="container">
+    <div class="header">
+        <div>
+            <span class="main-title" id="main-title-display" onclick="editMainTitle()">🏆 My 12-Week Masterpiece</span>
+            <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+                <input type="date" id="start-date-input" onchange="updateStartDate(this.value)" style="border-radius:10px; border:1px solid #ddd; padding:5px;">
+                <span id="streak-display" class="streak-badge">연속 달성 🔥 0일</span>
+            </div>
+        </div>
+        <button onclick="toggleTheme()" class="theme-btn" style="padding:10px 20px;">🌙/☀️ 모드</button>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between;">
+            <h2>🖼️ Visual Vision Board</h2>
+            <span id="dday-display" style="font-weight:bold; color:var(--accent);">D-Day 계산 중...</span>
+        </div>
+        <div class="vision-grid" id="vision-gallery"></div>
+    </div>
+
+    <div class="card">
+        <h2>📊 전체 달성률: <span id="total-percent">0%</span></h2>
+        <div class="prog-container"><div id="total-bar" class="prog-bar"></div></div>
+    </div>
+
+    <div class="week-grid" id="board"></div>
+</div>
+
+<div class="save-dock">
+    <button class="btn-save" onclick="manualSave()">💾 저장하기</button>
+    <button class="btn-backup" onclick="exportData()">📤 백업받기</button>
+    <button class="btn-backup" style="background:#8e8e93" onclick="importData()">📥 불러오기</button>
+</div>
+
+<script>
+    let data = JSON.parse(localStorage.getItem('masterpieceData')) || {
+        theme: 'light',
+        mainTitle: "🏆 My 12-Week Masterpiece",
+        startDate: new Date().toISOString().split('T')[0],
+        images: [null, null, null],
+        streak: 0,
+        lastCheckDate: null,
+        weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], review: "" }))
+    };
+
+    function editMainTitle() {
+        let val = prompt("제목을 수정하세요:", data.mainTitle);
+        if(val) { data.mainTitle = val; render(); }
+    }
+
+    function updateStartDate(val) { data.startDate = val; render(); }
+    function toggleTheme() { data.theme = data.theme === 'light' ? 'dark' : 'light'; render(); }
+
+    function manualSave() {
+        localStorage.setItem('masterpieceData', JSON.stringify(data));
+        confetti({ particleCount: 200, spread: 100, origin: { y: 0.8 } });
+        alert("브라우저에 안전하게 저장되었습니다!");
+    }
+
+    function exportData() {
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'my-12-week-plan.json'; a.click();
+    }
+
+    function importData() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = e => {
+            const reader = new FileReader();
+            reader.onload = () => { data = JSON.parse(reader.result); render(); alert("데이터를 성공적으로 불러왔습니다!"); };
+            reader.readAsText(e.target.files[0]);
+        };
+        input.click();
+    }
+
+    function handleImage(idx, file) {
+        const reader = new FileReader();
+        reader.onload = (e) => { data.images[idx] = e.target.result; render(); };
+        reader.readAsDataURL(file);
+    }
+
+    function updateStreak() {
+        const today = new Date().toISOString().split('T')[0];
+        if (data.lastCheckDate !== today) {
+            data.streak++;
+            data.lastCheckDate = today;
+        }
+    }
+
+    function render() {
+        document.body.setAttribute('data-theme', data.theme);
+        document.getElementById('main-title-display').innerText = data.mainTitle;
+        document.getElementById('start-date-input').value = data.startDate;
+        document.getElementById('streak-display').innerText = `연속 달성 🔥 ${data.streak}일`;
+
+        const start = new Date(data.startDate);
+        const end = new Date(start); end.setDate(start.getDate() + 84);
+        const diff = Math.ceil((end - new Date()) / 86400000);
+        document.getElementById('dday-display').innerText = diff > 0 ? `남은 기간: D-${diff}일` : "여정 완료!";
+
+        const gallery = document.getElementById('vision-gallery');
+        gallery.innerHTML = '';
+        data.images.forEach((img, i) => {
+            gallery.innerHTML += `<div class="vision-img-card">
+                ${img ? `<img src="${img}"><button onclick="data.images[${i}]=null; render();" style="position:absolute;top:5px;right:5px;background:var(--accent);color:white;border-radius:50%;border:none;cursor:pointer;">×</button>` : 
+                `<label style="cursor:pointer;color:var(--primary);">📸 사진 추가<input type="file" hidden onchange="handleImage(${i}, this.files[0])"></label>`}
+            </div>`;
+        });
+
+        let board = document.getElementById('board'); board.innerHTML = '';
+        let tDone = 0, tAll = 0;
+
+        data.weeks.forEach((week, wIdx) => {
+            let wDone = week.todos.filter(t => t.done).length;
+            let wTotal = week.todos.length;
+            let wPercent = wTotal === 0 ? 0 : Math.round((wDone / wTotal) * 100);
+            tDone += wDone; tAll += wTotal;
+
+            board.innerHTML += `
+                <div class="card">
+                    <h3 onclick="let v=prompt('주차명:', data.weeks[${wIdx}].title); if(v){data.weeks[${wIdx}].title=v; render();}">${week.title} <small>${wPercent}%</small></h3>
+                    <div class="prog-container"><div class="prog-bar" style="width:${wPercent}%"></div></div>
+                    <div>
+                        ${week.todos.map((t, tIdx) => `
+                            <div class="todo-item">
+                                <input type="checkbox" ${t.done ? 'checked' : ''} onclick="data.weeks[${wIdx}].todos[${tIdx}].done=!data.weeks[${wIdx}].todos[${tIdx}].done; if(data.weeks[${wIdx}].todos[${tIdx}].done){confetti(); updateStreak();} render();">
+                                <span style="flex-grow:1">${t.text}</span>
+                                <button onclick="data.weeks[${wIdx}].todos.splice(${tIdx},1); render();" style="background:none;border:none;color:var(--accent);cursor:pointer;">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." style="flex-grow:1; padding:8px; border-radius:10px; border:1px solid #ddd;">
+                        <button onclick="let v=document.getElementById('in-${wIdx}'); if(v.value){data.weeks[${wIdx}].todos.push({text:v.value,done:false}); render();}" style="background:var(--text); color:var(--card); padding:5px 15px; border-radius:10px;">+</button>
+                    </div>
+                    <div class="review-box">
+                        <span class="review-title">📝 주간 회고 / 메모</span>
+                        <textarea placeholder="이번 주의 배운 점..." onchange="data.weeks[${wIdx}].review=this.value; localStorage.setItem('masterpieceData', JSON.stringify(data));">${week.review || ""}</textarea>
+                    </div>
+                </div>`;
+        });
+
+        let totalPercent = tAll === 0 ? 0 : Math.round((tDone / tAll) * 100);
+        document.getElementById('total-percent').innerText = totalPercent + "%";
+        document.getElementById('total-bar').style.width = totalPercent + "%";
+        localStorage.setItem('masterpieceData', JSON.stringify(data));
+    }
+    render();
+</script>
+</body>
+</html>
