@@ -133,7 +133,6 @@
 </div>
 
 <script>
-    // 명언 150개 데이터 (중략 - 기존 V9.3과 동일)
     const quotes = [
         { q: "혁신은 리더와 추종자를 구분한다.", a: "스티브 잡스" },
         { q: "성공은 형편없는 스승이다.", a: "빌 게이츠" },
@@ -337,7 +336,6 @@
         data.weeks.forEach((w, wIdx) => {
             const ws = new Date(start); ws.setDate(start.getDate() + (wIdx * 7));
             const we = new Date(ws); we.setDate(ws.getDate() + 6);
-            // 주차별 카드 내의 검은색 아이콘 제거 및 색상 통일
             const range = `<span class="cal-highlight">🗓️</span> ${ws.getMonth()+1}/${ws.getDate()} ~ ${we.getMonth()+1}/${we.getDate()}`;
             const done = w.todos.filter(t => t.done).length;
             const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
@@ -383,7 +381,32 @@
     function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
     function updateDDay() { const start = new Date(data.startDate); const end = new Date(start); end.setDate(start.getDate() + 84); const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
     function refreshQuote() { const rq = quotes[Math.floor(Math.random() * quotes.length)]; document.getElementById('quote-display').innerText = `"${rq.q}"`; document.getElementById('quote-author').innerText = `- ${rq.a}`; }
-    function toggleTimer() { if(isRunning) { clearInterval(timerInterval); document.getElementById('timer-btn').innerText = "START"; } else { timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("집중 시간 종료!"); timeLeft=1500; updateTimerDisplay(); isRunning=false; } }, 1000); document.getElementById('timer-btn').innerText = "STOP"; } isRunning = !isRunning; }
+    
+    // 수정된 타이머 로직
+    function toggleTimer() {
+        if (isRunning) {
+            clearInterval(timerInterval);
+            document.getElementById('timer-btn').innerText = "START";
+            isRunning = false;
+        } else {
+            isRunning = true; 
+            document.getElementById('timer-btn').innerText = "STOP";
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confetti();
+                    alert("집중 시간 종료!");
+                    timeLeft = 1500;
+                    updateTimerDisplay();
+                    document.getElementById('timer-btn').innerText = "START";
+                    isRunning = false;
+                }
+            }, 1000);
+        }
+    }
+
     function updateTimerDisplay() { const m = Math.floor(timeLeft / 60), s = timeLeft % 60; document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; }
     function handleImage(idx) { const input = document.createElement('input'); input.type = 'file'; input.onchange = e => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = event => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); const MAX = 500; let w = img.width, h = img.height; if (w > MAX) { h *= MAX / w; w = MAX; } canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h); data.images[idx] = canvas.toDataURL('image/jpeg', 0.7); save(); render(); }; img.src = event.target.result; }; reader.readAsDataURL(file); }; input.click(); }
     function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
