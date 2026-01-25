@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>12주 프리미엄 비전 대시보드</title>
+    <title>12주 프리미엄 대시보드</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -16,155 +16,19 @@
         }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; transition: 0.3s; }
         .container { max-width: 1100px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 25px; }
         
-        /* 이미지 보드 스타일 */
+        /* 제목 및 날짜 설정 영역 */
+        .main-title { font-size: 2em; font-weight: bold; cursor: pointer; border-bottom: 2px dashed var(--primary); }
+        .date-setting { font-size: 0.9em; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 10px; display: inline-block; margin-top: 10px; }
+        
+        /* 이미지/비전 보드 */
         .vision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
         .vision-img-card { position: relative; aspect-ratio: 1/1; background: #eee; border-radius: 15px; overflow: hidden; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; }
         .vision-img-card img { width: 100%; height: 100%; object-fit: cover; }
-        .img-upload-label { cursor: pointer; color: var(--primary); font-weight: bold; }
-        .img-del-btn { position: absolute; top: 5px; right: 5px; background: var(--accent); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; }
-
-        .prog-container { background: rgba(0,0,0,0.1); border-radius: 10px; height: 12px; margin: 15px 0; overflow: hidden; }
-        .prog-bar { background: linear-gradient(90deg, var(--primary), var(--success)); height: 100%; width: 0%; transition: 0.5s; }
         
-        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .todo-item { display: flex; align-items: center; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 10px; }
-        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--success); cursor: pointer; }
-        .theme-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
-    </style>
-</head>
-<body data-theme="light">
-
-<div class="container">
-    <div class="header">
-        <h1>🏆 My 12-Week Masterpiece</h1>
-        <button class="theme-btn" onclick="toggleTheme()">🌙/☀️ 모드 변경</button>
-    </div>
-
-    <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>🖼️ Visual Vision Board</h2>
-            <span id="quote-area" style="font-style: italic; color: var(--primary); font-size: 0.9em;"></span>
-        </div>
-        <div class="vision-grid" id="vision-gallery">
-            </div>
-    </div>
-
-    <div class="card">
-        <h2>📊 전체 진행률: <span id="total-percent">0%</span></h2>
-        <div class="prog-container"><div id="total-bar" class="prog-bar"></div></div>
-    </div>
-
-    <div class="week-grid" id="board"></div>
-</div>
-
-<script>
-    const quotes = [
-        "작은 성공이 모여 큰 기적을 만듭니다.",
-        "오늘의 노력이 내일의 당신을 만듭니다.",
-        "실패는 성공으로 가는 연습일 뿐이에요!",
-        "당신은 생각보다 훨씬 더 강한 사람입니다."
-    ];
-
-    let data = JSON.parse(localStorage.getItem('finalData')) || {
-        theme: 'light',
-        images: [null, null, null],
-        weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], diary: "" }))
-    };
-
-    function toggleTheme() {
-        data.theme = data.theme === 'light' ? 'dark' : 'light';
-        save();
-    }
-
-    function save() {
-        localStorage.setItem('finalData', JSON.stringify(data));
-        render();
-    }
-
-    // 이미지 업로드 처리
-    function handleImage(idx, file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            data.images[idx] = e.target.result;
-            save();
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function deleteImage(idx) {
-        data.images[idx] = null;
-        save();
-    }
-
-    function render() {
-        document.body.setAttribute('data-theme', data.theme);
-        document.getElementById('quote-area').innerText = quotes[Math.floor(Math.random() * quotes.length)];
-
-        // 이미지 갤러리 렌더링
-        const gallery = document.getElementById('vision-gallery');
-        gallery.innerHTML = '';
-        data.images.forEach((img, i) => {
-            gallery.innerHTML += `
-                <div class="vision-img-card">
-                    ${img ? `<img src="${img}"><button class="img-del-btn" onclick="deleteImage(${i})">×</button>` : 
-                    `<label class="img-upload-label">📸 사진 추가<input type="file" hidden onchange="handleImage(${i}, this.files[0])"></label>`}
-                </div>`;
-        });
-
-        // 주차별 카드 렌더링
-        let board = document.getElementById('board');
-        board.innerHTML = '';
-        let tDone = 0, tAll = 0;
-
-        data.weeks.forEach((week, wIdx) => {
-            let wDone = week.todos.filter(t => t.done).length;
-            let wTotal = week.todos.length;
-            let wPercent = wTotal === 0 ? 0 : Math.round((wDone / wTotal) * 100);
-            tDone += wDone; tAll += wTotal;
-
-            board.innerHTML += `
-                <div class="card">
-                    <h3>${week.title} <small>${wPercent}%</small></h3>
-                    <div class="prog-container"><div class="prog-bar" style="width:${wPercent}%"></div></div>
-                    <div class="todo-list">
-                        ${week.todos.map((t, tIdx) => `
-                            <div class="todo-item">
-                                <input type="checkbox" ${t.done ? 'checked' : ''} onclick="toggleTodo(${wIdx}, ${tIdx})">
-                                <span style="flex-grow:1">${t.text}</span>
-                                <button onclick="deleteTodo(${wIdx}, ${tIdx})" style="background:none; border:none; color:var(--accent); cursor:pointer;">×</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="in-${wIdx}" placeholder="할 일 입력..." style="flex-grow:1; padding:8px; border-radius:8px; border:1px solid #ddd;">
-                        <button onclick="addTodo(${wIdx})" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:0 15px;">+</button>
-                    </div>
-                    <input type="text" value="${week.diary}" placeholder="📝 한 줄 회고..." 
-                           style="width:100%; margin-top:15px; background:none; border:none; border-bottom:1px solid #eee; color:var(--primary);"
-                           onchange="data.weeks[${wIdx}].diary=this.value; save();">
-                </div>`;
-        });
-
-        let totalPercent = tAll === 0 ? 0 : Math.round((tDone / tAll) * 100);
-        document.getElementById('total-percent').innerText = totalPercent + "%";
-        document.getElementById('total-bar').style.width = totalPercent + "%";
-    }
-
-    function addTodo(wIdx) {
-        const val = document.getElementById(`in-${wIdx}`).value;
-        if(val) { data.weeks[wIdx].todos.push({text: val, done: false}); save(); }
-    }
-    function toggleTodo(wIdx, tIdx) {
-        data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done;
-        if(data.weeks[wIdx].todos[tIdx].done) confetti({ particleCount: 150, spread: 60 });
-        save();
-    }
-    function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); }
-
-    render();
-</script>
-</body>
-</html>
+        /* 하단 고정 저장 버튼 */
+        .save-dock { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .btn-main-save { background: var(--success); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-size:
