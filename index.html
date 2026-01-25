@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>12주 마스터피스: 시즌 관리자</title>
+    <title>12주 울트라 마스터피스 V3</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
@@ -16,198 +17,206 @@
         }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; transition: 0.3s; padding-bottom: 120px; }
         .container { max-width: 1100px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 25px; position: relative; }
         
-        .main-title { font-size: 2.2em; font-weight: bold; cursor: pointer; border-bottom: 3px dashed var(--primary); }
-        .streak-badge { background: linear-gradient(135deg, #ff9500, #ff5e3a); color: white; padding: 8px 15px; border-radius: 15px; font-weight: bold; font-size: 0.9em; }
-        
-        /* 중요도 별표 스타일 */
-        .star-btn { cursor: pointer; font-size: 1.2em; color: #ccc; transition: 0.2s; border: none; background: none; }
-        .star-btn.active { color: var(--gold); }
+        /* 뱃지 스타일 */
+        .badge-container { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .badge { padding: 5px 12px; border-radius: 15px; font-size: 0.85em; background: #eee; color: #aaa; filter: grayscale(1); transition: 0.3s; }
+        .badge.active { background: var(--gold); color: #000; filter: grayscale(0); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
 
-        .prog-container { background: rgba(0,0,0,0.1); border-radius: 10px; height: 14px; margin: 15px 0; overflow: hidden; }
-        .prog-bar { background: linear-gradient(90deg, var(--primary), var(--success)); height: 100%; width: 0%; transition: 0.8s ease-in-out; }
-        
+        /* 타이머 스타일 */
+        .timer-box { background: var(--primary); color: white; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
+        .timer-display { font-size: 2em; font-weight: bold; font-variant-numeric: tabular-nums; }
+
+        /* 그래프 스타일 */
+        .chart-container { height: 250px; margin-top: 20px; }
+
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 25px; }
-        .todo-item { display: flex; align-items: center; background: rgba(0,0,0,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; gap: 10px; }
+        .prog-container { background: rgba(0,0,0,0.1); border-radius: 10px; height: 12px; margin: 10px 0; overflow: hidden; }
+        .prog-bar { background: var(--primary); height: 100%; transition: 0.5s; }
         
-        /* 하단 고정 바 */
-        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 1000; background: rgba(255,255,255,0.85); padding: 12px 25px; border-radius: 40px; backdrop-filter: blur(10px); box-shadow: 0 10px 40px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); }
-        button { cursor: pointer; border: none; border-radius: 20px; font-weight: bold; transition: 0.2s; }
-        .btn-save { background: var(--success); color: white; padding: 10px 25px; }
-        .btn-reset { background: var(--accent); color: white; padding: 10px 20px; }
-        
-        .capsule-msg { font-size: 0.85em; color: var(--primary); background: rgba(0,113,227,0.1); padding: 8px; border-radius: 10px; margin-top: 10px; display: none; }
+        .todo-item { display: flex; align-items: center; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 8px; }
+        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 12px 25px; border-radius: 40px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        button { cursor: pointer; border: none; border-radius: 20px; font-weight: bold; padding: 8px 15px; }
     </style>
 </head>
 <body data-theme="light">
 
 <div class="container">
-    <div class="header">
-        <div>
-            <span class="main-title" id="main-title-display" onclick="editMainTitle()">🏆 My 12-Week Masterpiece</span>
-            <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
-                시작: <input type="date" id="start-date-input" onchange="updateStartDate(this.value)" style="border-radius:10px; border:1px solid #ddd; padding:5px;">
-                <span id="streak-display" class="streak-badge">연속 🔥 0일</span>
+    <div class="card" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+        <div style="flex: 1; min-width: 300px;">
+            <h1 id="main-title" onclick="let v=prompt('제목:', this.innerText); if(v) this.innerText=v; save();" style="cursor:pointer; margin:0;">🏆 My 12-Week Masterpiece</h1>
+            <div class="badge-container" id="badge-list">
+                <div class="badge" id="b-first">🌱 첫 걸음</div>
+                <div class="badge" id="b-streak">🔥 3일 열정</div>
+                <div class="badge" id="b-week">🥇 주간 마스터</div>
+                <div class="badge" id="b-half">🌓 절반의 기록</div>
+                <div class="badge" id="b-all">👑 전설의 탄생</div>
             </div>
         </div>
-        <div style="display:flex; gap:10px;">
-            <button onclick="editCapsule()" style="background:var(--gold); color:black; padding:10px 15px;">🎁 미래의 나에게</button>
-            <button onclick="toggleTheme()" style="background:var(--primary); color:white; padding:10px 15px;">🌙/☀️</button>
+        <div class="timer-box" style="min-width: 200px;">
+            <div style="font-size: 0.8em; margin-bottom: 5px;">⏳ 포모도로 집중 모드</div>
+            <div class="timer-display" id="timer">25:00</div>
+            <button onclick="toggleTimer()" id="timer-btn" style="background:white; color:var(--primary); margin-top:10px;">시작</button>
         </div>
     </div>
 
-    <div id="capsule-display" class="card" style="display:none; background: linear-gradient(135deg, #fff9e6, #fff); border: 2px solid var(--gold);">
-        <h3 style="margin:0; color:var(--gold);">📩 도착한 타임캡슐 메시지</h3>
-        <p id="capsule-text" style="font-style:italic; margin:10px 0 0 0;"></p>
-    </div>
-
     <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>🖼️ Vision Board</h2>
-            <span id="dday-display" style="font-weight:bold; color:var(--accent);">D-Day 계산 중...</span>
-        </div>
-        <div class="vision-grid" id="vision-gallery"></div>
-    </div>
-
-    <div class="card">
-        <h2>📊 전체 달성률: <span id="total-percent">0%</span></h2>
-        <div class="prog-container"><div id="total-bar" class="prog-bar"></div></div>
+        <h2>📈 주간 성취도 그래프</h2>
+        <div class="chart-container"><canvas id="weeklyChart"></canvas></div>
     </div>
 
     <div class="week-grid" id="board"></div>
 </div>
 
 <div class="save-dock">
-    <button class="btn-save" onclick="manualSave()">💾 저장하기</button>
-    <button class="btn-reset" onclick="resetSeason()">🔄 시즌 종료(리셋)</button>
-    <button style="background:#0071e3; color:white; padding:10px 15px;" onclick="exportData()">📤 백업</button>
+    <button style="background:var(--success); color:white;" onclick="manualSave()">💾 전체 저장</button>
+    <button style="background:var(--primary); color:white;" onclick="exportData()">📤 백업</button>
+    <button style="background:var(--accent); color:white;" onclick="if(confirm('리셋하시겠습니까?')) {localStorage.clear(); location.reload();}">🔄 리셋</button>
 </div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('v2Data')) || {
-        theme: 'light',
+    let data = JSON.parse(localStorage.getItem('v3Data')) || {
         mainTitle: "🏆 My 12-Week Masterpiece",
-        startDate: new Date().toISOString().split('T')[0],
-        images: [null, null, null],
         streak: 0,
-        lastCheckDate: null,
-        capsuleMsg: "",
-        weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], review: "" }))
+        lastDate: null,
+        weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], diary: "" }))
     };
 
-    function editMainTitle() {
-        let val = prompt("대시보드 제목을 수정하세요:", data.mainTitle);
-        if(val) { data.mainTitle = val; render(); }
-    }
+    let timerInterval;
+    let timeLeft = 1500;
+    let isRunning = false;
+    let myChart;
 
-    function editCapsule() {
-        let val = prompt("미래의 나(8주차 이후)에게 보낼 응원 메시지를 적으세요:", data.capsuleMsg);
-        if(val) { data.capsuleMsg = val; alert("타임캡슐이 봉인되었습니다! 8주차에 공개됩니다."); render(); }
-    }
-
-    function resetSeason() {
-        if(confirm("정말로 시즌을 종료하고 초기화할까요? (중요한 데이터는 미리 백업받으세요!)")) {
-            localStorage.removeItem('v2Data');
-            location.reload();
+    function toggleTimer() {
+        if(isRunning) {
+            clearInterval(timerInterval);
+            document.getElementById('timer-btn').innerText = "시작";
+        } else {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confetti();
+                    alert("집중 시간 종료! 고생하셨습니다.");
+                    timeLeft = 1500;
+                    updateTimerDisplay();
+                }
+            }, 1000);
+            document.getElementById('timer-btn').innerText = "정지";
         }
+        isRunning = !isRunning;
     }
 
-    function updateStartDate(val) { data.startDate = val; render(); }
-    function toggleTheme() { data.theme = data.theme === 'light' ? 'dark' : 'light'; render(); }
+    function updateTimerDisplay() {
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function save() {
+        data.mainTitle = document.getElementById('main-title').innerText;
+        localStorage.setItem('v3Data', JSON.stringify(data));
+        updateBadges();
+        updateChart();
+    }
 
     function manualSave() {
-        localStorage.setItem('v2Data', JSON.stringify(data));
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.8 } });
-        alert("모든 데이터가 저장되었습니다!");
+        save();
+        confetti({ particleCount: 150 });
+        alert("모든 기록이 안전하게 저장되었습니다!");
     }
 
-    function exportData() {
-        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'my-12-week-v2.json'; a.click();
+    function updateBadges() {
+        const totalDone = data.weeks.reduce((acc, w) => acc + w.todos.filter(t => t.done).length, 0);
+        const weekMaster = data.weeks.some(w => w.todos.length > 0 && w.todos.every(t => t.done));
+        
+        if(totalDone > 0) document.getElementById('b-first').classList.add('active');
+        if(data.streak >= 3) document.getElementById('b-streak').classList.add('active');
+        if(weekMaster) document.getElementById('b-week').classList.add('active');
+        if(totalDone >= 50) document.getElementById('b-half').classList.add('active');
+        if(data.weeks.every(w => w.todos.length > 0 && w.todos.every(t => t.done))) document.getElementById('b-all').classList.add('active');
     }
 
-    function toggleStar(wIdx, tIdx) {
-        data.weeks[wIdx].todos[tIdx].important = !data.weeks[wIdx].todos[tIdx].important;
-        render();
-    }
+    function updateChart() {
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        const labels = data.weeks.map(w => w.title);
+        const scores = data.weeks.map(w => {
+            const total = w.todos.length;
+            return total === 0 ? 0 : Math.round((w.todos.filter(t => t.done).length / total) * 100);
+        });
 
-    function updateStreak() {
-        const today = new Date().toISOString().split('T')[0];
-        if (data.lastCheckDate !== today) {
-            data.streak++;
-            data.lastCheckDate = today;
-        }
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '달성률 (%)',
+                    data: scores,
+                    borderColor: '#0071e3',
+                    backgroundColor: 'rgba(0, 113, 227, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
+        });
     }
 
     function render() {
-        document.body.setAttribute('data-theme', data.theme);
-        document.getElementById('main-title-display').innerText = data.mainTitle;
-        document.getElementById('start-date-input').value = data.startDate;
-        document.getElementById('streak-display').innerText = `연속 🔥 ${data.streak}일`;
-
-        const start = new Date(data.startDate);
-        const diffDays = Math.ceil((new Date() - start) / 86400000);
-        const currentWeek = Math.ceil(diffDays / 7);
-
-        // 타임캡슐 로직: 8주차 이후에만 노출
-        if (currentWeek >= 8 && data.capsuleMsg) {
-            document.getElementById('capsule-display').style.display = 'block';
-            document.getElementById('capsule-text').innerText = data.capsuleMsg;
-        }
-
-        const end = new Date(start); end.setDate(start.getDate() + 84);
-        const diff = Math.ceil((end - new Date()) / 86400000);
-        document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "종료";
-
-        const gallery = document.getElementById('vision-gallery');
-        gallery.innerHTML = '';
-        data.images.forEach((img, i) => {
-            gallery.innerHTML += `<div class="vision-img-card">
-                ${img ? `<img src="${img}"><button onclick="data.images[${i}]=null; render();" style="position:absolute;top:5px;right:5px;background:var(--accent);color:white;border:none;border-radius:50%;cursor:pointer;">×</button>` : 
-                `<label style="cursor:pointer;color:var(--primary);">📸 사진<input type="file" hidden onchange="const r=new FileReader();r.onload=e=>{data.images[${i}]=e.target.result;render();};r.readAsDataURL(this.files[0])"></label>`}
-            </div>`;
-        });
-
-        let board = document.getElementById('board'); board.innerHTML = '';
-        let tDone = 0, tAll = 0;
+        document.getElementById('main-title').innerText = data.mainTitle;
+        const board = document.getElementById('board');
+        board.innerHTML = '';
 
         data.weeks.forEach((week, wIdx) => {
-            let wDone = week.todos.filter(t => t.done).length;
-            let wTotal = week.todos.length;
-            let wPercent = wTotal === 0 ? 0 : Math.round((wDone / wTotal) * 100);
-            tDone += wDone; tAll += wTotal;
+            const done = week.todos.filter(t => t.done).length;
+            const total = week.todos.length;
+            const percent = total === 0 ? 0 : Math.round((done / total) * 100);
 
             board.innerHTML += `
-                <div class="card" style="${currentWeek === wIdx + 1 ? 'border: 2px solid var(--primary);' : ''}">
-                    <h3>${week.title} ${currentWeek === wIdx + 1 ? '📍' : ''} <small>${wPercent}%</small></h3>
-                    <div class="prog-container"><div class="prog-bar" style="width:${wPercent}%"></div></div>
+                <div class="card">
+                    <h3>${week.title} <small>${percent}%</small></h3>
+                    <div class="prog-container"><div class="prog-bar" style="width:${percent}%"></div></div>
                     <div>
                         ${week.todos.map((t, tIdx) => `
-                            <div class="todo-item" style="${t.important ? 'border-left: 5px solid var(--gold);' : ''}">
-                                <button class="star-btn ${t.important ? 'active' : ''}" onclick="toggleStar(${wIdx}, ${tIdx})">★</button>
-                                <input type="checkbox" ${t.done ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--success);" onclick="data.weeks[${wIdx}].todos[${tIdx}].done=!data.weeks[${wIdx}].todos[${tIdx}].done; if(data.weeks[${wIdx}].todos[${tIdx}].done){confetti(); updateStreak();} render();">
-                                <span style="flex-grow:1; ${t.done ? 'text-decoration:line-through;opacity:0.5;' : ''}">${t.text}</span>
-                                <button onclick="data.weeks[${wIdx}].todos.splice(${tIdx},1); render();" style="background:none;border:none;color:var(--accent);cursor:pointer;">×</button>
+                            <div class="todo-item">
+                                <input type="checkbox" ${t.done ? 'checked' : ''} onclick="toggleTodo(${wIdx}, ${tIdx})">
+                                <span style="flex-grow:1; ${t.done ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.text}</span>
+                                <button onclick="deleteTodo(${wIdx}, ${tIdx})" style="color:var(--accent); background:none;">×</button>
                             </div>
                         `).join('')}
                     </div>
                     <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="in-${wIdx}" placeholder="할 일..." style="flex-grow:1; padding:8px; border-radius:10px; border:1px solid #ddd;">
-                        <button onclick="let v=document.getElementById('in-${wIdx}'); if(v.value){data.weeks[${wIdx}].todos.push({text:v.value,done:false,important:false}); render();}" style="background:var(--primary); color:white; padding:5px 15px; border-radius:10px;">+</button>
+                        <input type="text" id="in-${wIdx}" placeholder="할 일..." style="flex-grow:1; border:1px solid #ddd; border-radius:10px; padding:8px;">
+                        <button onclick="addTodo(${wIdx})" style="background:var(--primary); color:white;">+</button>
                     </div>
-                    <textarea placeholder="주간 회고..." style="width:100%; margin-top:10px; border:none; background:rgba(0,0,0,0.02); padding:8px; border-radius:8px; height:40px;" onchange="data.weeks[${wIdx}].review=this.value; localStorage.setItem('v2Data', JSON.stringify(data));">${week.review || ""}</textarea>
                 </div>`;
         });
-
-        let totalPercent = tAll === 0 ? 0 : Math.round((tDone / tAll) * 100);
-        document.getElementById('total-percent').innerText = totalPercent + "%";
-        document.getElementById('total-bar').style.width = totalPercent + "%";
-        localStorage.setItem('v2Data', JSON.stringify(data));
+        updateBadges();
+        updateChart();
     }
+
+    function addTodo(wIdx) {
+        const val = document.getElementById(`in-${wIdx}`).value;
+        if(val) { data.weeks[wIdx].todos.push({text: val, done: false}); save(); render(); }
+    }
+
+    function toggleTodo(wIdx, tIdx) {
+        data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done;
+        if(data.weeks[wIdx].todos[tIdx].done) confetti();
+        save(); render();
+    }
+
+    function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
+    
+    function exportData() {
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click();
+    }
+
     render();
 </script>
 </body>
