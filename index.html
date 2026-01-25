@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Centered Edition</title>
+    <title>12-Week Masterpiece: Original Alignment</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -41,15 +41,16 @@
         .date-picker-group { margin-top: 10px; font-size: 0.8em; display: flex; align-items: center; gap: 5px; justify-content: center; }
         .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 3px; border-radius: 6px; }
 
-        /* ⭐ 명언 중앙 정렬 및 디자인 수정 */
-        .quote-card { text-align: center; }
+        /* ⭐ 명언 왼쪽 정렬 복구 및 강조 바 추가 */
         .quote-text { 
-            font-size: 1.3em; 
+            font-size: 1.25em; 
             font-weight: 800; 
-            line-height: 1.5; 
+            border-left: 5px solid var(--primary); 
+            padding-left: 15px; 
+            line-height: 1.4; 
             cursor: pointer; 
             word-break: keep-all;
-            margin-bottom: 8px;
+            text-align: left; /* 왼쪽 정렬 */
         }
         
         .timer-card { background: var(--primary); color: white; text-align: center; border: none; }
@@ -63,7 +64,6 @@
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: all 0.3s ease; }
         
-        /* ⭐ 요청하신 🗓️ 1/25~1/31 형식 스타일 */
         .week-date-range { font-size: 0.85em; font-weight: 600; color: var(--quote-sub); margin-top: 3px; display: block; }
         
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
@@ -98,7 +98,7 @@
 
         <div class="quote-card" onclick="refreshQuote()">
             <div id="quote-display" class="quote-text">명언 로딩 중...</div>
-            <div id="quote-author" style="color:var(--quote-sub); font-size:0.9em; font-weight:bold;"></div>
+            <div id="quote-author" style="color:var(--quote-sub); font-size:0.9em; margin-top:8px; margin-left:15px; font-weight:bold; text-align: left;"></div>
         </div>
 
         <div class="timer-card">
@@ -137,7 +137,7 @@
         { q: "꿈을 기록하면 목표가 되고 실행하면 현실이 된다.", a: "강규형" }
     ];
 
-    const STORAGE_KEY = '12W_FINAL_V3';
+    const STORAGE_KEY = '12W_FINAL_V4';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -196,7 +196,7 @@
             weekStart.setDate(start.getDate() + (wIdx * 7));
             const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
             
-            // ⭐ 요청하신 🗓️ 1/25~1/31 형식
+            // ⭐ 🗓️ 1/25 ~ 1/31 형식 유지
             const rangeStr = `🗓️ ${weekStart.getMonth()+1}/${weekStart.getDate()} ~ ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
             
             const done = w.todos.filter(t => t.done).length;
