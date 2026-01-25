@@ -2,48 +2,68 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>나의 12주 성장 대시보드</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12주 마스터 대시보드</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --primary: #4a90e2; --success: #2ecc71; --bg: #f8f9fa; --accent: #ff7675; }
-        body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1000px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2, h3 { margin-top: 0; display: flex; align-items: center; justify-content: space-between; }
-        .editable { cursor: pointer; border-bottom: 1px dashed var(--primary); }
-        .editable:hover { background: #f0f7ff; }
+        :root {
+            --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
+            --primary: #0071e3; --success: #34c759; --accent: #ff3b30;
+        }
+        [data-theme='dark'] {
+            --bg: #000000; --card: #1c1c1e; --text: #f5f5f7;
+            --primary: #0a84ff; --success: #30d158; --accent: #ff453a;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; transition: 0.3s; }
+        .container { max-width: 1100px; margin: auto; }
         
-        /* 진행바 */
-        .prog-container { background: #eee; border-radius: 10px; height: 15px; width: 100%; margin: 10px 0; overflow: hidden; }
-        .prog-bar { background: var(--success); height: 100%; width: 0%; transition: 0.3s; }
-        
-        /* 주차별 카드 */
-        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .todo-list { list-style: none; padding: 0; }
-        .todo-item { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
-        .todo-text { flex-grow: 1; }
-        
-        /* 응원 메시지 스타일 */
-        .cheer-msg { font-size: 0.85em; color: var(--accent); font-weight: bold; margin-bottom: 10px; min-height: 1.2em; }
-        
-        /* 일기장 스타일 */
-        .diary-box { margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
-        .diary-box label { font-size: 0.8em; color: #888; display: block; margin-bottom: 5px; }
-        .diary-input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px; font-size: 0.9em; box-sizing: border-box; }
+        /* 헤더 & 다크모드 버튼 */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .theme-btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
 
-        .add-box { display: flex; gap: 5px; margin-top: 10px; }
-        input[type="text"] { flex-grow: 1; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
-        button { cursor: pointer; border: none; border-radius: 4px; padding: 5px 10px; background: var(--primary); color: white; }
-        button.del { background: var(--accent); padding: 2px 6px; font-size: 11px; }
+        .card { background: var(--card); padding: 25px; border-radius: 18px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid rgba(0,0,0,0.05); }
+        
+        /* 디데이 & 진행바 */
+        .d-day-badge { background: var(--accent); color: white; padding: 5px 12px; border-radius: 12px; font-size: 0.9em; font-weight: bold; }
+        .prog-container { background: rgba(0,0,0,0.1); border-radius: 10px; height: 12px; width: 100%; margin: 15px 0; overflow: hidden; }
+        .prog-bar { background: linear-gradient(90deg, var(--primary), var(--success)); height: 100%; width: 0%; transition: 0.8s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
+
+        /* 주차별 그리드 */
+        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .todo-item { display: flex; align-items: center; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 10px; margin-bottom: 8px; gap: 10px; transition: 0.2s; }
+        .todo-item:hover { background: rgba(0,0,0,0.05); }
+        .todo-text { flex-grow: 1; outline: none; }
+        
+        input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--success); cursor: pointer; }
+        .cheer-msg { font-size: 0.85em; color: var(--primary); margin: 10px 0; font-weight: 500; }
+        
+        /* 입력창 스타일 */
+        .input-group { display: flex; gap: 8px; margin-top: 15px; }
+        input[type="text"] { flex-grow: 1; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 10px; background: var(--bg); color: var(--text); }
+        .add-btn { background: var(--text); color: var(--card); border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .del-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; }
+
+        .editable-title { cursor: pointer; border-bottom: 2px dashed var(--primary); }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
 <div class="container">
+    <div class="header">
+        <h1>My 12-Week Journey</h1>
+        <button class="theme-btn" onclick="toggleTheme()">모드 변경</button>
+    </div>
+
     <div class="card">
-        <h2>🔭 비전 보드 (클릭수정)</h2>
-        <p><strong>장기 비전:</strong> <span class="editable" id="v1" onclick="edit(this)">꿈을 적으세요</span></p>
-        <p><strong>3년 목표:</strong> <span class="editable" id="v2" onclick="edit(this)">3년 뒤 모습</span></p>
-        <p><strong>12주 핵심:</strong> <span class="editable" id="v3" onclick="edit(this)">이번 12주 목표</span></p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>🔭 Vision Board</h2>
+            <span class="d-day-badge" id="dday-display">D-Day 설정 필요</span>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-top:15px;">
+            <div><strong>장기 비전</strong><div class="todo-text editable-title" onclick="editVision(0)" id="v0">클릭하여 수정</div></div>
+            <div><strong>3년 목표</strong><div class="todo-text editable-title" onclick="editVision(1)" id="v1">클릭하여 수정</div></div>
+            <div><strong>12주 핵심</strong><div class="todo-text editable-title" onclick="editVision(2)" id="v2">클릭하여 수정</div></div>
+        </div>
     </div>
 
     <div class="card">
@@ -55,111 +75,106 @@
 </div>
 
 <script>
-    const cheerQuotes = [
-        "실패해도 괜찮아! 내일 다시 도전하면 돼 🌈",
-        "오늘 조금 부족했어도 넌 여전히 멋져! ✨",
-        "한 걸음이 늦어도 괜찮아, 멈추지 않는 게 중요해 🐢",
-        "완벽하지 않아도 좋아! 시도했다는 게 최고야 👍",
-        "오늘의 실수는 내일의 더 큰 성장이 될 거야 🌱"
-    ];
-
-    let data = JSON.parse(localStorage.getItem('myPlanData')) || {
-        visions: ["장기 비전 내용을 적으세요", "3년 후 목표를 적으세요", "12주 핵심 목표를 적으세요"],
+    let data = JSON.parse(localStorage.getItem('premiumData')) || {
+        theme: 'light',
+        visions: ["나의 큰 꿈", "3년 뒤의 내 모습", "이번 12주 목표"],
+        startDate: new Date().toISOString().split('T')[0],
         weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], diary: "" }))
     };
 
+    function toggleTheme() {
+        data.theme = data.theme === 'light' ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', data.theme);
+        save();
+    }
+
     function save() {
-        localStorage.setItem('myPlanData', JSON.stringify(data));
+        localStorage.setItem('premiumData', JSON.stringify(data));
         render();
     }
 
-    function edit(el) {
-        let val = prompt("수정할 내용을 입력하세요:", el.innerText);
-        if(val) {
-            if(el.id.startsWith('v')) data.visions[parseInt(el.id[1])-1] = val;
-            else if(el.id.startsWith('t')) data.weeks[parseInt(el.id.split('-')[1])].title = val;
-            save();
-        }
+    function editVision(idx) {
+        let val = prompt("목표를 수정하세요:", data.visions[idx]);
+        if(val) { data.visions[idx] = val; save(); }
     }
 
-    function addTodo(weekIdx) {
-        let input = document.getElementById(`in-${weekIdx}`);
+    function editWeekTitle(idx) {
+        let val = prompt("주차 제목을 수정하세요:", data.weeks[idx].title);
+        if(val) { data.weeks[idx].title = val; save(); }
+    }
+
+    function addTodo(wIdx) {
+        let input = document.getElementById(`in-${wIdx}`);
         if(!input.value) return;
-        data.weeks[weekIdx].todos.push({ text: input.value, done: false });
+        data.weeks[wIdx].todos.push({ text: input.value, done: false });
         input.value = '';
         save();
     }
 
-    function toggleTodo(weekIdx, todoIdx) {
-        data.weeks[weekIdx].todos[todoIdx].done = !data.weeks[weekIdx].todos[todoIdx].done;
+    function toggleTodo(wIdx, tIdx) {
+        data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done;
+        if(data.weeks[wIdx].todos[tIdx].done) {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); // 폭죽 팡!
+        }
         save();
     }
 
-    function deleteTodo(weekIdx, todoIdx) {
-        data.weeks[weekIdx].todos.splice(todoIdx, 1);
+    function deleteTodo(wIdx, tIdx) {
+        data.weeks[wIdx].todos.splice(tIdx, 1);
         save();
-    }
-
-    function updateDiary(weekIdx, text) {
-        data.weeks[weekIdx].diary = text;
-        localStorage.setItem('myPlanData', JSON.stringify(data));
     }
 
     function render() {
-        document.getElementById('v1').innerText = data.visions[0];
-        document.getElementById('v2').innerText = data.visions[1];
-        document.getElementById('v3').innerText = data.visions[2];
+        document.body.setAttribute('data-theme', data.theme);
+        data.visions.forEach((v, i) => document.getElementById(`v${i}`).innerText = v);
+
+        // 디데이 계산
+        const start = new Date(data.startDate);
+        const end = new Date(start);
+        end.setDate(start.getDate() + (12 * 7));
+        const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
+        document.getElementById('dday-display').innerText = diff > 0 ? `종료까지 D-${diff}일` : `활동 종료`;
 
         let board = document.getElementById('board');
         board.innerHTML = '';
-        let totalAll = 0, totalDone = 0;
+        let tDone = 0, tAll = 0;
 
         data.weeks.forEach((week, wIdx) => {
-            let weekDone = week.todos.filter(t => t.done).length;
-            let weekTotal = week.todos.length;
-            let weekPercent = weekTotal === 0 ? 0 : Math.round((weekDone / weekTotal) * 100);
-            
-            totalAll += weekTotal;
-            totalDone += weekDone;
-
-            // 랜덤 응원 메시지 (달성률 100% 미만일 때만)
-            let quote = weekPercent < 100 && weekTotal > 0 ? cheerQuotes[wIdx % cheerQuotes.length] : "모두 완료! 정말 대단해! 🎉";
+            let wDone = week.todos.filter(t => t.done).length;
+            let wTotal = week.todos.length;
+            let wPercent = wTotal === 0 ? 0 : Math.round((wDone / wTotal) * 100);
+            tDone += wDone; tAll += wTotal;
 
             let html = `
                 <div class="card">
-                    <h3><span class="editable" id="t-${wIdx}" onclick="edit(this)">${week.title}</span> <small>${weekPercent}%</small></h3>
-                    <div class="cheer-msg">${quote}</div>
-                    <div class="prog-container"><div class="prog-bar" style="width:${weekPercent}%"></div></div>
-                    <ul class="todo-list">
-            `;
+                    <h3><span class="editable-title" onclick="editWeekTitle(${wIdx})">${week.title}</span> <small>${wPercent}%</small></h3>
+                    <div class="prog-container"><div class="prog-bar" style="width:${wPercent}%"></div></div>
+                    <div class="todo-list">`;
             
             week.todos.forEach((todo, tIdx) => {
                 html += `
-                    <li class="todo-item">
+                    <div class="todo-item">
                         <input type="checkbox" ${todo.done ? 'checked' : ''} onclick="toggleTodo(${wIdx}, ${tIdx})">
                         <span class="todo-text">${todo.text}</span>
-                        <button class="del" onclick="deleteTodo(${wIdx}, ${tIdx})">X</button>
-                    </li>
-                `;
+                        <button class="del-btn" onclick="deleteTodo(${wIdx}, ${tIdx})">×</button>
+                    </div>`;
             });
 
             html += `
-                </ul>
-                <div class="add-box">
-                    <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." onkeypress="if(event.keyCode==13) addTodo(${wIdx})">
-                    <button onclick="addTodo(${wIdx})">+</button>
                 </div>
-                <div class="diary-box">
-                    <label>📝 한 줄 일기 / 회고</label>
-                    <input type="text" class="diary-input" value="${week.diary || ''}" 
-                           placeholder="오늘의 기분을 적어보세요" 
-                           onchange="updateDiary(${wIdx}, this.value)">
+                <div class="input-group">
+                    <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." onkeypress="if(event.keyCode==13) addTodo(${wIdx})">
+                    <button class="add-btn" onclick="addTodo(${wIdx})">+</button>
+                </div>
+                <div style="margin-top:15px;">
+                    <input type="text" class="todo-text" style="width:100%; font-size:0.85em; border:none; background:none; color:var(--primary);" 
+                           value="${week.diary}" placeholder="📝 한 줄 일기..." onchange="data.weeks[${wIdx}].diary=this.value; save();">
                 </div>
             </div>`;
             board.innerHTML += html;
         });
 
-        let totalPercent = totalAll === 0 ? 0 : Math.round((totalDone / totalAll) * 100);
+        let totalPercent = tAll === 0 ? 0 : Math.round((tDone / tAll) * 100);
         document.getElementById('total-percent').innerText = totalPercent + "%";
         document.getElementById('total-bar').style.width = totalPercent + "%";
     }
