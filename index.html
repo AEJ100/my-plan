@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Auto-Save Edition</title>
+    <title>12-Week Masterpiece: Fast-Entry Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
@@ -53,10 +52,8 @@
         .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 50px; margin-top: 5px; }
 
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .week-card { 
-            background: var(--card); border-radius: 18px; padding: 18px; 
-            border: 2px solid var(--border); transition: all 0.3s ease;
-        }
+        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: all 0.3s ease; }
+        .week-card.active { box-shadow: 0 0 15px rgba(0,113,227,0.15); }
         
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
         .star-box { background: #fff; color: #000; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
@@ -65,9 +62,7 @@
 
         .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .dock-btn { padding: 8px 16px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.85em; }
-
-        /* 자동 저장 알림 뱃지 */
-        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 3000; pointer-events: none; }
+        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 3000; }
     </style>
 </head>
 <body data-theme="dark">
@@ -76,7 +71,7 @@
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <input type="text" id="master-title" class="main-title-input" oninput="autoSaveField('title', this.value)" placeholder="제목을 입력하세요">
+        <input type="text" id="master-title" class="main-title-input" oninput="autoSaveField('title', this.value)" placeholder="프로젝트 제목">
         <button onclick="toggleTheme()" style="background:var(--card); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.75em;">🌓 테마 전환</button>
     </div>
 
@@ -124,15 +119,14 @@
 <script>
     const quotes = [
         { q: "시련은 있어도 실패는 없다.", a: "정주영" },
+        { q: "혁신은 리더와 추종자를 구분하는 잣대다.", a: "스티브 잡스" },
         { q: "가장 큰 위험은 아무것도 감수하지 않는 것이다.", a: "마크 저커버그" },
-        { q: "오늘 걷지 않으면 내일은 뛰어야 한다.", a: "자기개발 명언" },
-        { q: "행동은 모든 성공의 기초다.", a: "피카소" },
-        { q: "천재는 1% 영감과 99% 노력이다.", a: "에디슨" },
-        { q: "할 수 있다고 믿는 사람이 결국 해낸다.", a: "정주영" }
-        // ... (100개 데이터 유지 가능)
+        { q: "할 수 있다고 믿는 사람이 결국 해낸다.", a: "정주영" },
+        { q: "어제와 똑같이 살면서 다른 미래를 기대하는 것은 정신병이다.", a: "아인슈타인" },
+        { q: "성공은 행동하는 사람의 몫이다.", a: "기업인 명언" }
     ];
 
-    const STORAGE_KEY = '12W_AUTOSAVE_V1';
+    const STORAGE_KEY = '12W_FAST_ENTRY_V1';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -144,35 +138,28 @@
 
     let timerInterval, timeLeft = 1500, isRunning = false;
 
-    // 1. 입력 즉시 저장 (Debounce 적용하여 성능 최적화)
-    let saveTimeout;
     function save() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        showSaveStatus();
+        const s = document.getElementById('save-status'); s.style.opacity = '1';
+        setTimeout(() => { s.style.opacity = '0'; }, 800);
         calculateTotalPercent();
-    }
-
-    function showSaveStatus() {
-        const s = document.getElementById('save-status');
-        s.style.opacity = '1';
-        setTimeout(() => { s.style.opacity = '0'; }, 1000);
     }
 
     function autoSaveField(field, val) { data[field] = val; save(); }
     function autoSaveGoal(field, val) { data.goals[field] = val; save(); }
 
-    // 2. 일주일 주기 백업 알림 로직
-    function checkBackupReminder() {
-        const now = new Date().getTime();
-        const oneWeek = 7 * 24 * 60 * 60 * 1000;
-        if (now - data.lastBackup > oneWeek) {
-            if (confirm("⚠️ 마지막 백업으로부터 일주일이 지났습니다! 데이터를 안전하게 파일로 저장하시겠습니까?")) {
-                exportData();
-            }
-        }
+    // ⭐ 핵심 변경: 엔터 입력 시 바로 다음 입력을 위해 포커스 유지
+    function addTodo(wIdx) { 
+        const v = document.getElementById(`in-${wIdx}`); 
+        if(v.value.trim()){ 
+            data.weeks[wIdx].todos.push({text:v.value, done:false, important:false}); 
+            v.value=''; 
+            save(); 
+            render(wIdx); // 렌더링 시 해당 주차의 입력창에 포커스를 다시 줍니다.
+        } 
     }
 
-    function render() {
+    function render(focusIdx = null) {
         document.body.setAttribute('data-theme', data.theme);
         document.getElementById('master-title').value = data.title;
         document.getElementById('start-date').value = data.startDate;
@@ -205,12 +192,10 @@
             const dateStr = `${weekStart.getMonth()+1}/${weekStart.getDate()} ~ ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
             const done = w.todos.filter(t => t.done).length;
             const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
-            
             const color = per === 0 ? 'var(--border)' : (per <= 30 ? '#ff9500' : (per <= 70 ? '#007aff' : '#34c759'));
 
             board.innerHTML += `
                 <div class="week-card ${isCurrent ? 'active' : ''}" style="border-color: ${color}">
-                    <span style="font-size:0.7em; color:var(--quote-sub);">📅 ${dateStr}</span>
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                         <span style="font-weight:bold;">${wIdx + 1}주차</span>
                         <span style="color:${color}; font-weight:900;">${per}%</span>
@@ -226,11 +211,22 @@
                         `).join('')}
                     </div>
                     <div style="display:flex; gap:5px; margin-top:8px;">
-                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." onkeypress="if(event.key==='Enter') addTodo(${wIdx})" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.9em;">
+                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." 
+                            onkeypress="if(event.key==='Enter') addTodo(${wIdx})" 
+                            style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.9em;">
                         <button onclick="addTodo(${wIdx})" style="background:${color}; color:white; border:none; border-radius:8px; width:35px; cursor:pointer;">+</button>
                     </div>
                 </div>`;
         });
+
+        // ⭐ 입력 완료 후 다시 해당 입력창에 포커스 자동 지정
+        if(focusIdx !== null) {
+            setTimeout(() => {
+                const targetInput = document.getElementById(`in-${focusIdx}`);
+                if(targetInput) targetInput.focus();
+            }, 10);
+        }
+        
         calculateTotalPercent(); updateDDay();
     }
 
@@ -248,7 +244,6 @@
         if(item.important) { data.weeks[wIdx].todos.splice(tIdx, 1); data.weeks[wIdx].todos.unshift(item); }
         save(); render();
     }
-    function addTodo(wIdx) { const v = document.getElementById(`in-${wIdx}`); if(v.value){ data.weeks[wIdx].todos.push({text:v.value, done:false, important:false}); v.value=''; save(); render(); } }
     function toggleTodo(wIdx, tIdx) { data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done; if(data.weeks[wIdx].todos[tIdx].done) confetti(); save(); render(); }
     function editTodoText(wIdx, tIdx, val) { data.weeks[wIdx].todos[tIdx].text = val; save(); }
     function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
@@ -276,10 +271,9 @@
         input.click();
     }
     function exportData() { 
-        data.lastBackup = new Date().getTime(); // 백업 시점 갱신
-        save();
+        data.lastBackup = new Date().getTime(); save();
         const b = new Blob([JSON.stringify(data)], {type:'application/json'}); 
-        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `12W_Backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); 
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `12W_Backup.json`; a.click(); 
     }
     function importData() {
         const i = document.createElement('input'); i.type = 'file';
@@ -289,7 +283,11 @@
     function resetAll() { if(confirm("초기화하시겠습니까?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
 
     render();
-    checkBackupReminder(); // 실행 시 백업 필요 여부 확인
+    // 일주일 백업 알림 (유지)
+    const now = new Date().getTime();
+    if (now - data.lastBackup > 7 * 24 * 60 * 60 * 1000) {
+        if (confirm("마지막 백업으로부터 일주일이 지났습니다! 안전하게 백업하시겠습니까?")) exportData();
+    }
 </script>
 </body>
 </html>
