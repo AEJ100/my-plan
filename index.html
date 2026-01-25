@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Ultimate</title>
+    <title>12-Week Masterpiece: Drag & Drop</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -17,129 +17,91 @@
             --primary: #0a84ff; --success: #30d158; --accent: #ff453a;
             --border: #3a3a3c; --quote-sub: #a1a1a6;
         }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 20px; transition: 0.3s; 
-            min-height: 100vh; background-color: var(--bg); color: var(--text); box-sizing: border-box; padding-bottom: 140px;
-        }
+        body { font-family: -apple-system, sans-serif; margin: 0; padding: 20px; background-color: var(--bg); color: var(--text); padding-bottom: 140px; }
         .container { max-width: 1000px; margin: auto; }
         .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); position: relative; }
         
-        /* 상단 헤더 & 토탈 성공률 */
+        /* 헤더 & 성공률 */
         .header-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 30px; align-items: center; margin-bottom: 30px; }
-        .dday-big { font-size: 3.5em; font-weight: 900; color: var(--accent); line-height: 1; letter-spacing: -2px; }
-        
-        .progress-container { margin-top: 15px; width: 100%; max-width: 250px; }
-        .progress-label { font-size: 0.9em; font-weight: 800; color: var(--primary); margin-bottom: 5px; display: block; }
-        .progress-bar-bg { background: var(--border); height: 10px; border-radius: 5px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--primary); transition: 0.8s cubic-bezier(0.075, 0.82, 0.165, 1); width: 0%; }
+        .dday-big { font-size: 3.5em; font-weight: 900; color: var(--accent); line-height: 1; }
+        .progress-bar-bg { background: var(--border); height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .progress-bar-fill { height: 100%; background: var(--primary); transition: 0.5s; width: 0%; }
 
-        .quote-side { background: rgba(0,113,227,0.05); border-left: 4px solid var(--primary); padding: 12px 18px; border-radius: 0 15px 15px 0; font-size: 0.95rem; line-height: 1.5; align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
-        .timer-box { background: var(--primary); color: white; padding: 15px 25px; border-radius: 20px; text-align: center; min-width: 150px; box-shadow: 0 10px 20px rgba(0,113,227,0.2); }
-        .timer-display { font-size: 2.2em; font-weight: 800; }
+        /* 타이머 & 명언 */
+        .timer-box { background: var(--primary); color: white; padding: 15px; border-radius: 20px; text-align: center; min-width: 140px; }
+        .quote-side { background: rgba(0,113,227,0.05); border-left: 4px solid var(--primary); padding: 15px; border-radius: 0 15px 15px 0; }
 
-        /* 비전 & 목표 */
-        details { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 15px; overflow: hidden; background: var(--card); }
-        summary { padding: 18px; font-weight: bold; background: var(--bg); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-        .vision-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
-        .vision-img { aspect-ratio: 1/1; border-radius: 15px; border: 2px dashed var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg); }
-        .vision-img img { width: 100%; height: 100%; object-fit: cover; }
-        .goal-item { padding: 0 20px 20px 20px; }
-        .goal-area { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: 1em; background: var(--bg); color: var(--text); resize: vertical; min-height: 80px; margin-bottom: 15px; font-family: inherit; box-sizing: border-box; }
-
-        /* 할 일 목록 */
-        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
-        .todo-item { display: flex; align-items: center; background: var(--bg); padding: 12px; border-radius: 12px; margin-bottom: 10px; gap: 10px; border: 1px solid var(--border); }
-        .star-btn { cursor: pointer; font-size: 1.3em; color: #ccc; border: none; background: none; padding: 0; transition: 0.2s; }
-        .star-btn.active { color: var(--gold); }
-        .done-stamp { position: absolute; top: 10px; right: 10px; font-size: 1.5em; }
-
-        .save-dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 1000; background: var(--card); padding: 12px 25px; border-radius: 50px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); border: 1px solid var(--border); }
-        button { cursor: pointer; border: none; border-radius: 12px; font-weight: bold; padding: 10px 18px; transition: 0.2s; }
-
-        @media (max-width: 768px) {
-            .header-grid { grid-template-columns: 1fr; gap: 15px; }
-            .timer-box { order: -1; }
+        /* 드래그 앤 드롭 스타일 */
+        .todo-item { 
+            display: flex; align-items: center; background: var(--bg); padding: 12px; 
+            border-radius: 12px; margin-bottom: 8px; gap: 10px; border: 1px solid var(--border);
+            cursor: grab; transition: background 0.2s;
         }
+        .todo-item:active { cursor: grabbing; }
+        .todo-item.dragging { opacity: 0.4; background: var(--border); }
+        
+        /* 기타 UI */
+        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
+        .goal-area { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--bg); color: var(--text); resize: vertical; margin-bottom: 15px; box-sizing: border-box; }
+        .save-dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 1000; background: var(--card); padding: 12px 25px; border-radius: 50px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
+        button { cursor: pointer; border: none; border-radius: 10px; font-weight: bold; padding: 10px 15px; }
+        details { border: 1px solid var(--border); border-radius: 15px; margin-bottom: 20px; background: var(--card); }
+        summary { padding: 15px; font-weight: bold; cursor: pointer; background: var(--bg); }
     </style>
 </head>
 <body data-theme="light">
 
 <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
-        <h1 id="main-title" onclick="editTitle()" style="cursor:pointer; margin:0; font-size: 1.6em;">🏆 12-Week Masterpiece</h1>
-        <button onclick="toggleTheme()" style="background:var(--text); color:var(--card); font-size:0.85em;">🌓 테마 전환</button>
+    <div style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+        <h1 id="main-title" onclick="editTitle()">🏆 12-Week Masterpiece</h1>
+        <button onclick="toggleTheme()" style="background:var(--text); color:var(--card);">🌓 테마</button>
     </div>
 
     <div class="header-grid">
-        <div class="dday-box">
+        <div>
             <div id="dday-display" class="dday-big">D-Day</div>
-            <div class="progress-container">
-                <span class="progress-label">12주 통합 성공률: <span id="total-per-text">0%</span></span>
-                <div class="progress-bar-bg">
-                    <div id="total-per-bar" class="progress-bar-fill"></div>
-                </div>
-            </div>
+            <div style="margin-top:10px; font-weight:bold; color:var(--primary);">통합 달성률: <span id="total-per-text">0%</span></div>
+            <div class="progress-bar-bg"><div id="total-per-bar" class="progress-bar-fill"></div></div>
         </div>
-        
         <div class="quote-side">
-            <div id="quote-display">"로딩 중..."</div>
-            <div id="quote-author" style="font-size: 0.85em; color: var(--quote-sub); margin-top: 5px;"></div>
+            <div id="quote-display">"계획 없는 목표는 단지 희망사항에 불과하다."</div>
+            <div id="quote-author" style="font-size: 0.8em; color: var(--quote-sub);">- 생텍쥐페리</div>
         </div>
-
         <div class="timer-box">
-            <div style="font-size: 0.75em; opacity: 0.9; margin-bottom: 3px; font-weight: bold;">FOCUS</div>
-            <div id="timer" class="timer-display">25:00</div>
-            <button onclick="toggleTimer()" id="timer-btn" style="background:white; color:var(--primary); margin-top:8px; width:100%; padding:6px; font-size: 0.85em;">START</button>
+            <div id="timer" style="font-size: 1.8em; font-weight: bold;">25:00</div>
+            <button onclick="toggleTimer()" id="timer-btn" style="width:100%; margin-top:5px;">START</button>
         </div>
-    </div>
-
-    <div style="margin-bottom: 30px; font-size: 0.95em;">
-        📅 시작일: <input type="date" id="start-date" onchange="data.startDate=this.value; save(); render();" style="border:1px solid var(--border); padding:6px; border-radius:10px; background:var(--card); color:var(--text); outline:none;">
     </div>
 
     <details>
-        <summary>🖼️ 비전 보드 & 3단계 목표 시스템</summary>
-        <div class="vision-grid" id="vision-gallery"></div>
-        <div class="goal-item">
-            <label style="font-weight:bold; color:var(--primary); font-size:0.9em; display:block; margin-bottom:8px;">🌟 원대한 목표 (장기 비전)</label>
-            <textarea id="goal-long" class="goal-area" onchange="data.goals.long=this.value; save();"></textarea>
-            
-            <label style="font-weight:bold; color:var(--primary); font-size:0.9em; display:block; margin-bottom:8px;">🎯 3년 목표</label>
-            <textarea id="goal-3yr" class="goal-area" onchange="data.goals.three=this.value; save();"></textarea>
-            
-            <label style="font-weight:bold; color:var(--primary); font-size:0.9em; display:block; margin-bottom:8px;">🚀 12주 핵심 계획</label>
-            <textarea id="goal-12wk" class="goal-area" onchange="data.goals.twelve=this.value; save();"></textarea>
+        <summary>🖼️ 비전 보드 & 목표 (접기/펼치기)</summary>
+        <div id="vision-gallery" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:15px;"></div>
+        <div style="padding:15px;">
+            <textarea id="goal-long" class="goal-area" placeholder="원대한 목표..." onchange="data.goals.long=this.value; save();"></textarea>
+            <textarea id="goal-3yr" class="goal-area" placeholder="3년 목표..." onchange="data.goals.three=this.value; save();"></textarea>
+            <textarea id="goal-12wk" class="goal-area" placeholder="12주 계획..." onchange="data.goals.twelve=this.value; save();"></textarea>
         </div>
     </details>
 
-    <div class="card">
-        <h2 style="margin:0 0 15px 0; font-size: 1.25em;">📊 주간 성공 차트</h2>
-        <div style="height:200px;"><canvas id="weeklyChart"></canvas></div>
-    </div>
-
+    <div class="card"><canvas id="weeklyChart" style="height:150px;"></canvas></div>
     <div class="week-grid" id="board"></div>
 </div>
 
 <div class="save-dock">
     <button style="background:var(--success); color:white;" onclick="manualSave()">💾 저장</button>
     <button style="background:var(--primary); color:white;" onclick="exportData()">📤 백업</button>
-    <button style="background:#5856d6; color:white;" onclick="importData()">📥 복원</button>
     <button style="background:#8e8e93; color:white;" onclick="resetAll()">🧹 초기화</button>
 </div>
 
 <script>
     const quotes = [
-        { q: "가장 위대한 영광은 한 번도 실패하지 않음이 아니라, 넘어질 때마다 다시 일어남에 있다.", a: "넬슨 만델라" },
+        { q: "가장 위대한 영광은 넘어질 때마다 다시 일어남에 있다.", a: "넬슨 만델라" },
         { q: "할 수 있다고 믿는 순간 이미 절반은 이룬 것이다.", a: "테오도르 루스벨트" },
-        { q: "미래를 예측하는 가장 좋은 방법은 미래를 직접 창조하는 것이다.", a: "피터 드러커" },
-        { q: "어제와 똑같이 살면서 다른 미래를 기대하는 것은 정신병 초기 증세이다.", a: "알베르트 아인슈타인" },
-        { q: "작은 일에 충실한 사람이 큰 일에도 충실할 수 있다.", a: "성경" },
-        { q: "당신의 시간은 한정되어 있다. 다른 사람의 삶을 사느라 낭비하지 마라.", a: "스티브 잡스" },
-        { q: "성공이란 열정을 잃지 않고 실패에서 실패로 나아가는 능력이다.", a: "윈스턴 처칠" },
-        { q: "계획 없는 목표는 단지 희망사항에 불과하다.", a: "생텍쥐페리" }
+        { q: "미래를 예측하는 가장 좋은 방법은 직접 만드는 것이다.", a: "피터 드러커" },
+        { q: "작은 일에 충실한 사람이 큰 일에도 충실하다.", a: "성경" }
     ];
 
-    let data = JSON.parse(localStorage.getItem('12WeekMasterFinal')) || {
+    let data = JSON.parse(localStorage.getItem('12WeekDragV1')) || {
         theme: 'light', title: "🏆 12-Week Masterpiece", startDate: new Date().toISOString().split('T')[0],
         goals: { long: "", three: "", twelve: "" }, images: [null, null, null],
         weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], review: "" }))
@@ -147,28 +109,11 @@
 
     let timerInterval, timeLeft = 1500, isRunning = false, myChart;
 
+    function save() { localStorage.setItem('12WeekDragV1', JSON.stringify(data)); updateChart(); calculateTotalPercent(); }
+    function manualSave() { save(); confetti(); alert("저장되었습니다!"); }
     function toggleTheme() { data.theme = data.theme === 'light' ? 'dark' : 'light'; save(); render(); }
-    function editTitle() { const v = prompt('제목 수정:', data.title); if(v) { data.title = v; save(); render(); } }
-    
-    function toggleTimer() {
-        if(isRunning) { clearInterval(timerInterval); document.getElementById('timer-btn').innerText = "START"; }
-        else {
-            timerInterval = setInterval(() => {
-                timeLeft--; updateTimerDisplay();
-                if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("집중 종료! 고생하셨습니다."); timeLeft=1500; updateTimerDisplay(); isRunning=false; document.getElementById('timer-btn').innerText = "START"; }
-            }, 1000);
-            document.getElementById('timer-btn').innerText = "STOP";
-        }
-        isRunning = !isRunning;
-    }
-    function updateTimerDisplay() {
-        const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-    }
-
-    function save() { localStorage.setItem('12WeekMasterFinal', JSON.stringify(data)); updateChart(); calculateTotalPercent(); }
-    function manualSave() { save(); confetti(); alert("저장 완료!"); }
-    function resetAll() { if(confirm("모든 데이터를 초기화할까요?")) { localStorage.removeItem('12WeekMasterFinal'); location.reload(); } }
+    function editTitle() { const v = prompt('제목:', data.title); if(v) { data.title = v; save(); render(); } }
+    function resetAll() { if(confirm("초기화할까요?")) { localStorage.removeItem('12WeekDragV1'); location.reload(); } }
 
     function calculateTotalPercent() {
         let total = 0, done = 0;
@@ -178,28 +123,65 @@
         document.getElementById('total-per-bar').style.width = `${per}%`;
     }
 
-    function exportData() {
-        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '12week-data.json'; a.click();
+    // --- 드래그 앤 드롭 핵심 로직 ---
+    let dragStartIndex, dragStartWeek;
+
+    function onDragStart(weekIdx, todoIdx) {
+        dragStartWeek = weekIdx;
+        dragStartIndex = todoIdx;
+        event.target.classList.add('dragging');
     }
-    function importData() {
-        const input = document.createElement('input'); input.type = 'file';
-        input.onchange = e => {
-            const reader = new FileReader();
-            reader.onload = () => { data = JSON.parse(reader.result); save(); render(); alert("복원 완료!"); };
-            reader.readAsText(e.target.files[0]);
-        };
-        input.click();
+
+    function onDragOver(e) { e.preventDefault(); }
+
+    function onDrop(weekIdx, todoIdx) {
+        if (dragStartWeek !== weekIdx) return; // 같은 주차 내에서만 이동 가능하도록 제한
+        const items = data.weeks[weekIdx].todos;
+        const draggedItem = items.splice(dragStartIndex, 1)[0];
+        items.splice(todoIdx, 0, draggedItem);
+        save();
+        render();
     }
-    function handleImage(idx) {
-        const input = document.createElement('input'); input.type = 'file';
-        input.onchange = e => {
-            const reader = new FileReader();
-            reader.onload = () => { data.images[idx] = reader.result; save(); render(); };
-            reader.readAsDataURL(e.target.files[0]);
-        };
-        input.click();
+    // ----------------------------
+
+    function render() {
+        document.body.setAttribute('data-theme', data.theme);
+        document.getElementById('main-title').innerText = data.title;
+        const q = quotes[Math.floor(Math.random()*quotes.length)];
+        document.getElementById('quote-display').innerText = `"${q.q}"`;
+        document.getElementById('quote-author').innerText = `- ${q.a}`;
+
+        const board = document.getElementById('board'); board.innerHTML = '';
+        data.weeks.forEach((w, wIdx) => {
+            const done = w.todos.filter(t => t.done).length, total = w.todos.length;
+            const per = total === 0 ? 0 : Math.round((done / total) * 100);
+            
+            board.innerHTML += `
+                <div class="card">
+                    <h3>${w.title} <span style="float:right; color:var(--primary);">${per}%</span></h3>
+                    <div id="list-${wIdx}" ondragover="onDragOver(event)">
+                        ${w.todos.map((t, tIdx) => `
+                            <div class="todo-item" draggable="true" 
+                                 ondragstart="onDragStart(${wIdx}, ${tIdx})" 
+                                 ondrop="onDrop(${wIdx}, ${tIdx})">
+                                <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo(${wIdx}, ${tIdx})">
+                                <span style="flex:1; ${t.done?'text-decoration:line-through;opacity:0.4':''}">${t.text}</span>
+                                <button onclick="deleteTodo(${wIdx}, ${tIdx})" style="background:none;color:var(--accent);">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border);">
+                        <button onclick="addTodo(${wIdx})" style="background:var(--primary); color:white;">+</button>
+                    </div>
+                </div>`;
+        });
+        updateChart(); calculateTotalPercent();
     }
+
+    function addTodo(wIdx) { const v = document.getElementById(`in-${wIdx}`); if(v.value){ data.weeks[wIdx].todos.push({text:v.value, done:false}); v.value=''; save(); render(); } }
+    function toggleTodo(wIdx, tIdx) { data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done; if(data.weeks[wIdx].todos[tIdx].done) confetti(); save(); render(); }
+    function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
 
     function updateChart() {
         const ctx = document.getElementById('weeklyChart').getContext('2d');
@@ -207,74 +189,10 @@
         if(myChart) myChart.destroy();
         myChart = new Chart(ctx, {
             type: 'line',
-            data: {
-                labels: data.weeks.map(w => w.title),
-                datasets: [{ label: '성공률(%)', data: scores, borderColor: '#0071e3', borderWidth: 3, tension: 0.3, fill: true, backgroundColor: 'rgba(0,113,227,0.1)' }]
-            },
+            data: { labels: data.weeks.map(w => w.title), datasets: [{ data: scores, borderColor: '#0071e3', tension: 0.3, fill: true, backgroundColor: 'rgba(0,113,227,0.1)' }] },
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } }, plugins: { legend: { display: false } } }
         });
     }
-
-    function render() {
-        document.body.setAttribute('data-theme', data.theme);
-        document.getElementById('main-title').innerText = data.title;
-        document.getElementById('start-date').value = data.startDate;
-        document.getElementById('goal-long').value = data.goals.long;
-        document.getElementById('goal-3yr').value = data.goals.three;
-        document.getElementById('goal-12wk').value = data.goals.twelve;
-
-        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-        document.getElementById('quote-display').innerText = `"${randomQuote.q}"`;
-        document.getElementById('quote-author').innerText = `- ${randomQuote.a}`;
-
-        const start = new Date(data.startDate);
-        const end = new Date(start); end.setDate(start.getDate() + 84);
-        const diff = Math.ceil((end - new Date()) / 86400000);
-        document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁 완료";
-
-        const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
-        data.images.forEach((img, i) => {
-            gallery.innerHTML += `<div class="vision-img" onclick="handleImage(${i})">${img ? `<img src="${img}">` : `<span style="color:var(--border); font-size:1.5em;">+</span>`}</div>`;
-        });
-
-        const board = document.getElementById('board'); board.innerHTML = '';
-        data.weeks.forEach((w, wIdx) => {
-            w.todos.sort((a, b) => b.important - a.important);
-            const done = w.todos.filter(t => t.done).length, total = w.todos.length;
-            const per = total === 0 ? 0 : Math.round((done / total) * 100);
-            const isDone = total > 0 && per === 100;
-
-            board.innerHTML += `
-                <div class="card" style="${isDone ? 'border-color:var(--success); border-width:2px;' : ''}">
-                    ${isDone ? '<span class="done-stamp">🔥</span>' : ''}
-                    <h3 style="margin:0 0 10px 0;">${w.title} <span style="color:var(--primary); float:right;">${per}%</span></h3>
-                    <div class="progress-bar-bg" style="height:6px;">
-                        <div style="width:${per}%; background:${per===100?'var(--success)':'var(--primary)'}; height:100%; transition:0.5s;"></div>
-                    </div>
-                    <div style="margin-top:15px;">
-                        ${w.todos.map((t, tIdx) => `
-                            <div class="todo-item" style="${t.important ? 'border-left: 5px solid var(--gold); background:rgba(255,204,0,0.05);' : ''}">
-                                <button class="star-btn ${t.important ? 'active' : ''}" onclick="toggleStar(${wIdx}, ${tIdx})">★</button>
-                                <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo(${wIdx}, ${tIdx})">
-                                <span style="flex:1; font-size: 0.95em; ${t.done?'text-decoration:line-through;opacity:0.4':''}">${t.text}</span>
-                                <button onclick="deleteTodo(${wIdx}, ${tIdx})" style="color:var(--accent); background:none; font-size:1.2em;">×</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." style="flex:1; border:1px solid var(--border); border-radius:10px; padding:10px; background:var(--bg); color:var(--text); outline:none;">
-                        <button onclick="addTodo(${wIdx})" style="background:var(--primary); color:white;">+</button>
-                    </div>
-                    <textarea placeholder="회고 기록..." onchange="data.weeks[${wIdx}].review=this.value; save();" style="height:60px; width:100%; border:1px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); padding:10px; margin-top:10px; font-family:inherit; font-size: 0.9em; box-sizing:border-box;">${w.review || ''}</textarea>
-                </div>`;
-        });
-        updateChart(); calculateTotalPercent();
-    }
-
-    function addTodo(wIdx) { const v = document.getElementById(`in-${wIdx}`); if(v.value){ data.weeks[wIdx].todos.push({text:v.value, done:false, important:false}); v.value=''; save(); render(); } }
-    function toggleTodo(wIdx, tIdx) { data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done; if(data.weeks[wIdx].todos[tIdx].done) confetti(); save(); render(); }
-    function toggleStar(wIdx, tIdx) { data.weeks[wIdx].todos[tIdx].important = !data.weeks[wIdx].todos[tIdx].important; save(); render(); }
-    function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
 
     render();
 </script>
