@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Grand Final</title>
+    <title>12-Week Masterpiece: Elite Final</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -23,12 +23,13 @@
         .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 60%; outline: none; margin-bottom: 10px; border-bottom: 2px solid transparent; }
         .main-title-input:focus { border-bottom-color: var(--primary); }
 
-        /* 대시보드 및 숫자 초강조 */
+        /* 대시보드 레이아웃 */
         .dashboard { display: grid; grid-template-columns: 1fr 1.8fr 1.5fr; gap: 12px; margin-bottom: 15px; }
         .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
         
+        /* 숫자 가독성 강화 */
         .dday-box { font-size: 3em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; letter-spacing: -1.5px; }
-        .mini-display { font-size: 1.8em; font-weight: 900; margin: 4px 0; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+        .mini-display { font-size: 1.8em; font-weight: 900; margin: 4px 0; letter-spacing: -1px; font-variant-numeric: tabular-nums; transition: color 0.3s; }
         #total-per-text { font-size: 2.2em; }
 
         .dual-card { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
@@ -39,28 +40,26 @@
         .mini-btn { background: white; color: var(--primary); border: none; width: 100%; padding: 4px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 0.7em; }
         
         .progress-bar-container { width: 100%; height: 8px; background: var(--border); border-radius: 10px; margin-top: 8px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; width: 0%; background: var(--primary); transition: width 0.6s ease; }
+        .progress-bar-fill { height: 100%; width: 0%; transition: width 0.6s ease, background-color 0.3s; }
 
-        .quote-text { font-size: 1.15em; font-weight: 800; border-left: 5px solid var(--primary); padding-left: 15px; line-height: 1.4; cursor: pointer; text-align: left; }
-        
-        /* 비전 보드 가독성 강화 */
+        /* 비전 보드 섹션 */
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; }
         .vision-item { margin-bottom: 25px; }
         .vision-label { font-size: 1.3em; font-weight: 900; color: var(--primary); display: block; margin-bottom: 10px; }
         .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 95px; line-height: 1.6; font-size: 1.1em; }
 
-        /* 주차 카드 (색상 복구) */
+        /* 주차별 카드 */
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); }
+        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: border-color 0.3s; }
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
         .star-icon { font-size: 1.4em; cursor: pointer; user-select: none; color: #ccc; transition: 0.2s; padding: 0 5px; }
         .star-icon.active { color: var(--gold); }
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; }
 
-        /* 하단 기능 독 */
+        /* 하단 기능 바 */
         .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-        .dock-btn { padding: 8px 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.8em; transition: 0.2s; white-space: nowrap; }
+        .dock-btn { padding: 8px 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.8em; transition: 0.2s; }
         .btn-backup { background: var(--success); }
         .btn-restore { background: #5856d6; }
         .btn-pdf { background: #ff9500; }
@@ -68,20 +67,17 @@
 
         #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 3000; }
 
-        /* PDF 출력 최적화 */
         @media print {
             .save-dock, #save-status, .mini-btn, .date-picker-group, summary, button { display: none !important; }
             body { background: white !important; color: black !important; padding: 0; }
-            .container { max-width: 100%; }
-            .week-card { page-break-inside: avoid; border: 1px solid #ddd !important; margin-bottom: 10px; }
-            .vision-section { border: 1px solid #ddd !important; }
+            .week-card { page-break-inside: avoid; border: 1px solid #ddd !important; }
             details { display: block !important; }
         }
     </style>
 </head>
 <body data-theme="dark">
 
-<div id="save-status">자동 저장 완료</div>
+<div id="save-status">실시간 저장 완료</div>
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -129,11 +125,11 @@
             </div>
             <div class="vision-item">
                 <span class="vision-label">🎯 3년 목표</span>
-                <textarea id="goal-three" class="goal-textarea" placeholder="3년 후의 나의 모습..." oninput="autoSaveGoal('three', this.value)"></textarea>
+                <textarea id="goal-three" class="goal-textarea" placeholder="3년 후 나의 모습..." oninput="autoSaveGoal('three', this.value)"></textarea>
             </div>
             <div class="vision-item">
                 <span class="vision-label">🚀 12주 계획</span>
-                <textarea id="goal-twelve" class="goal-textarea" placeholder="이번 12주 동안 반드시 이룰 것..." oninput="autoSaveGoal('twelve', this.value)"></textarea>
+                <textarea id="goal-twelve" class="goal-textarea" placeholder="이번 12주 핵심 액션..." oninput="autoSaveGoal('twelve', this.value)"></textarea>
             </div>
         </div>
     </details>
@@ -152,13 +148,13 @@
     const quotes = [
         { q: "혁신은 리더와 추종자를 구분한다.", a: "스티브 잡스" },
         { q: "가장 개인적인 것이 가장 창의적인 것이다.", a: "봉준호" },
-        { q: "이봐, 해봤어?", a: "정주영" },
         { q: "실행은 모든 것을 이긴다.", a: "마크 저커버그" },
-        { q: "단순함은 궁극의 정교함이다.", a: "레오나르도 다 빈치" },
+        { q: "이봐, 해봤어?", a: "정주영" },
+        { q: "나를 죽이지 못하는 것은 나를 더 강하게 만든다.", a: "니체" },
         { q: "끝까지 하는 사람이 결국 가져간다.", a: "성공 격언" }
     ];
 
-    const STORAGE_KEY = '12W_MASTER_FINAL_86';
+    const STORAGE_KEY = '12W_MASTER_ELITE_FINAL';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -177,8 +173,20 @@
         let total = 0, done = 0;
         data.weeks.forEach(w => { total += w.todos.length; done += w.todos.filter(t => t.done).length; });
         const rate = total === 0 ? 0 : Math.round((done / total) * 100);
-        document.getElementById('total-per-text').innerText = `${rate}%`;
-        document.getElementById('main-progress-bar').style.width = `${rate}%`;
+        
+        const valDisp = document.getElementById('total-per-text');
+        const bar = document.getElementById('main-progress-bar');
+        valDisp.innerText = `${rate}%`;
+        bar.style.width = `${rate}%`;
+
+        // 성공률에 따른 숫자 및 바 색상 동적 변경 (복구)
+        let color = 'var(--accent)'; // 0~29%
+        if(rate >= 30) color = '#ff9500'; // 30~69%
+        if(rate >= 70) color = 'var(--primary)'; // 70~99%
+        if(rate >= 100) color = 'var(--success)'; // 100%
+        
+        valDisp.style.color = color;
+        bar.style.backgroundColor = color;
     }
 
     function render(focusIdx = null) {
@@ -250,7 +258,7 @@
     function updateTimerDisplay() { const m = Math.floor(timeLeft / 60), s = timeLeft % 60; document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; }
     function handleImage(idx) { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { data.images[idx] = r.result; save(); render(); }; r.readAsDataURL(e.target.files[0]); }; i.click(); }
     function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
-    function exportData() { const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `12W_Masterpiece_Backup.json`; a.click(); }
+    function exportData() { const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `12W_Elite_Backup.json`; a.click(); }
     function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { try { data = JSON.parse(r.result); save(); render(); } catch(e) { alert("잘못된 파일입니다."); } }; r.readAsText(e.target.files[0]); }; i.click(); }
     function resetAll() { if(confirm("모든 데이터를 초기화할까요?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
 
