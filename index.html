@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Final Elite V9.5</title>
+    <title>12-Week Masterpiece: Final Elite V9.4</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
             --primary: #0071e3; --success: #34c759; --accent: #ff3b30; --gold: #ffcc00;
             --border: #d2d2d7; --quote-sub: #86868b; --input-bg: #f5f5f7;
-            --cal-icon: #0071e3;
+            --cal-icon: #0071e3; /* 라이트 모드 선명한 파랑 */
         }
         [data-theme='dark'] {
             --bg: #000000; --card: #1c1c1e; --text: #f5f5f7;
             --primary: #0a84ff; --success: #30d158; --accent: #ff453a;
             --border: #3a3a3c; --quote-sub: #a1a1a6; --input-bg: #0a0a0a;
-            --cal-icon: #64d2ff;
+            --cal-icon: #64d2ff; /* 다크 모드 밝은 하늘색 */
         }
 
         body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; }
@@ -29,9 +29,12 @@
         .dday-box { font-size: 3em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; letter-spacing: -1.5px; }
         .mini-display { font-size: 1.8em; font-weight: 900; margin: 4px 0; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
         
-        .date-picker-group { text-align: center; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 2px; }
-        .cal-trigger { font-size: 1.1em; color: var(--cal-icon); cursor: pointer; transition: transform 0.2s; margin-left: 5px; }
+        /* 통합 달력 아이콘 스타일 */
+        .cal-highlight { color: var(--cal-icon); font-weight: bold; margin-right: 4px; display: inline-flex; align-items: center; }
+        .cal-trigger { font-size: 1.2em; color: var(--cal-icon); cursor: pointer; transition: transform 0.2s; display: inline-flex; align-items: center; }
         .cal-trigger:hover { transform: scale(1.2); }
+
+        .date-picker-group { text-align: center; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
         .dual-card { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
         .timer-part, .progress-part { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; padding: 10px; }
@@ -83,9 +86,8 @@
         <div class="stat-card">
             <div id="dday-display" class="dday-box">D-84</div>
             <div class="date-picker-group">
-                <span style="font-size: 0.8em; font-weight: bold; opacity: 0.7;">시작일:</span>
-                <input type="date" id="start-date" style="border:none; background:transparent; color:var(--text); font-family:inherit; cursor:pointer; font-weight:bold; width:100px; font-size:0.85em; text-align:right;" onchange="data.startDate=this.value; save(); render();">
                 <span class="cal-trigger" onclick="document.getElementById('start-date').showPicker()">🗓️</span>
+                <input type="date" id="start-date" style="border:none; background:transparent; color:var(--text); font-family:inherit; cursor:pointer; font-weight:bold; width:105px;" onchange="data.startDate=this.value; save(); render();">
             </div>
         </div>
 
@@ -123,7 +125,15 @@
     <div class="week-grid" id="board"></div>
 </div>
 
+<div class="save-dock">
+    <button class="dock-btn btn-backup" onclick="exportData()">📤 백업</button>
+    <button class="dock-btn btn-restore" onclick="importData()">📥 복원</button>
+    <button class="dock-btn btn-pdf" onclick="window.print()">📄 PDF 저장</button>
+    <button class="dock-btn btn-reset" onclick="resetAll()">🧹 초기화</button>
+</div>
+
 <script>
+    // 명언 150개 데이터 (중략 - 기존 V9.3과 동일)
     const quotes = [
         { q: "혁신은 리더와 추종자를 구분한다.", a: "스티브 잡스" },
         { q: "성공은 형편없는 스승이다.", a: "빌 게이츠" },
@@ -327,8 +337,8 @@
         data.weeks.forEach((w, wIdx) => {
             const ws = new Date(start); ws.setDate(start.getDate() + (wIdx * 7));
             const we = new Date(ws); we.setDate(ws.getDate() + 6);
-            // 주차별 카드의 어두운 아이콘을 완전히 지우고 텍스트만 표시합니다.
-            const range = `${ws.getMonth()+1}/${ws.getDate()} ~ ${we.getMonth()+1}/${we.getDate()}`;
+            // 주차별 카드 내의 검은색 아이콘 제거 및 색상 통일
+            const range = `<span class="cal-highlight">🗓️</span> ${ws.getMonth()+1}/${ws.getDate()} ~ ${we.getMonth()+1}/${we.getDate()}`;
             const done = w.todos.filter(t => t.done).length;
             const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
 
