@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Full Edition</title>
+    <title>12-Week Masterpiece: Enhanced UI</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -41,7 +41,16 @@
         .date-picker-group { margin-top: 10px; font-size: 0.8em; display: flex; align-items: center; gap: 5px; justify-content: center; }
         .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 3px; border-radius: 6px; }
 
-        .quote-text { font-size: 0.95em; font-weight: 600; border-left: 3px solid var(--primary); padding-left: 12px; line-height: 1.5; cursor: pointer; }
+        /* ⭐ 명언 글씨 크기 키움 */
+        .quote-text { 
+            font-size: 1.25em; 
+            font-weight: 800; 
+            border-left: 5px solid var(--primary); 
+            padding-left: 15px; 
+            line-height: 1.4; 
+            cursor: pointer; 
+            word-break: keep-all;
+        }
         
         .timer-card { background: var(--primary); color: white; text-align: center; border: none; }
         .timer-display { font-size: 1.8em; font-weight: 800; margin: 2px 0; }
@@ -53,9 +62,9 @@
 
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: all 0.3s ease; }
-        .week-card.active { box-shadow: 0 0 15px rgba(0,113,227,0.15); }
         
-        .week-date-badge { font-size: 0.75em; color: var(--quote-sub); margin-bottom: 5px; display: block; }
+        /* ⭐ 주차별 시작일 디자인 */
+        .week-start-date { font-size: 0.85em; font-weight: 600; color: var(--primary); margin-top: 2px; display: block; }
         
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
         .star-box { background: #fff; color: #000; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
@@ -89,7 +98,7 @@
 
         <div class="quote-card" onclick="refreshQuote()">
             <div id="quote-display" class="quote-text">명언 로딩 중...</div>
-            <div id="quote-author" style="color:var(--quote-sub); font-size:0.8em; margin-top:5px; margin-left:12px;"></div>
+            <div id="quote-author" style="color:var(--quote-sub); font-size:0.9em; margin-top:8px; margin-left:15px; font-weight:bold;"></div>
         </div>
 
         <div class="timer-card">
@@ -125,10 +134,10 @@
         { q: "할 수 있다고 믿는 사람이 결국 해낸다.", a: "정주영" },
         { q: "어제와 똑같이 살면서 다른 미래를 기대하는 것은 정신병이다.", a: "아인슈타인" },
         { q: "성공은 행동하는 사람의 몫이다.", a: "기업인 명언" },
-        { q: "꿈을 기록하면 목표가 되고 실행하면 현실이 된다.", a: "자기개발" }
+        { q: "꿈을 기록하면 목표가 되고 실행하면 현실이 된다.", a: "강규형" }
     ];
 
-    const STORAGE_KEY = '12W_FINAL_FIX_V1';
+    const STORAGE_KEY = '12W_FINAL_V2';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -168,8 +177,6 @@
         document.getElementById('goal-three').value = data.goals.three || "";
         document.getElementById('goal-twelve').value = data.goals.twelve || "";
         
-        refreshQuote();
-
         const gallery = document.getElementById('vision-gallery');
         gallery.innerHTML = '';
         data.images.forEach((img, i) => {
@@ -181,7 +188,6 @@
         });
 
         const start = new Date(data.startDate);
-        const today = new Date(); today.setHours(0,0,0,0);
         const board = document.getElementById('board');
         board.innerHTML = '';
 
@@ -190,20 +196,25 @@
             weekStart.setDate(start.getDate() + (wIdx * 7));
             const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
             
-            const isCurrent = (today >= weekStart && today <= weekEnd);
-            // 📅 날짜 범위 표시 기능 (복구됨!)
-            const dateStr = `${weekStart.getMonth()+1}/${weekStart.getDate()} ~ ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
+            // ⭐ 요청하신 "주차 시작일" 표시 (YYYY-MM-DD 형식)
+            const startDateStr = weekStart.toISOString().split('T')[0];
+            const rangeStr = `${weekStart.getMonth()+1}/${weekStart.getDate()} ~ ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
             
             const done = w.todos.filter(t => t.done).length;
             const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
             const color = per === 0 ? 'var(--border)' : (per <= 30 ? '#ff9500' : (per <= 70 ? '#007aff' : '#34c759'));
 
             board.innerHTML += `
-                <div class="week-card ${isCurrent ? 'active' : ''}" style="border-color: ${color}">
-                    <span class="week-date-badge">📅 ${dateStr}</span>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="font-weight:bold; font-size:1.1em;">${wIdx + 1}주차</span>
-                        <span style="color:${color}; font-weight:900;">${per}%</span>
+                <div class="week-card" style="border-color: ${color}">
+                    <div style="margin-bottom:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items: flex-start;">
+                            <div>
+                                <span style="font-weight:900; font-size:1.3em;">${wIdx + 1}주차</span>
+                                <span class="week-start-date">시작: ${startDateStr}</span>
+                            </div>
+                            <span style="color:${color}; font-weight:900; font-size:1.1em;">${per}%</span>
+                        </div>
+                        <span style="font-size:0.7em; color:var(--quote-sub);">(${rangeStr})</span>
                     </div>
                     <div id="list-${wIdx}">
                         ${w.todos.map((t, tIdx) => `
@@ -286,6 +297,7 @@
     }
     function resetAll() { if(confirm("초기화하시겠습니까?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
 
+    refreshQuote(); // 명언 초기화
     render();
     const now = new Date().getTime();
     if (now - data.lastBackup > 7 * 24 * 60 * 60 * 1000) {
