@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Fast-Entry Edition</title>
+    <title>12-Week Masterpiece: Full Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -54,6 +54,8 @@
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: all 0.3s ease; }
         .week-card.active { box-shadow: 0 0 15px rgba(0,113,227,0.15); }
+        
+        .week-date-badge { font-size: 0.75em; color: var(--quote-sub); margin-bottom: 5px; display: block; }
         
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
         .star-box { background: #fff; color: #000; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
@@ -119,14 +121,14 @@
 <script>
     const quotes = [
         { q: "시련은 있어도 실패는 없다.", a: "정주영" },
-        { q: "혁신은 리더와 추종자를 구분하는 잣대다.", a: "스티브 잡스" },
         { q: "가장 큰 위험은 아무것도 감수하지 않는 것이다.", a: "마크 저커버그" },
         { q: "할 수 있다고 믿는 사람이 결국 해낸다.", a: "정주영" },
         { q: "어제와 똑같이 살면서 다른 미래를 기대하는 것은 정신병이다.", a: "아인슈타인" },
-        { q: "성공은 행동하는 사람의 몫이다.", a: "기업인 명언" }
+        { q: "성공은 행동하는 사람의 몫이다.", a: "기업인 명언" },
+        { q: "꿈을 기록하면 목표가 되고 실행하면 현실이 된다.", a: "자기개발" }
     ];
 
-    const STORAGE_KEY = '12W_FAST_ENTRY_V1';
+    const STORAGE_KEY = '12W_FINAL_FIX_V1';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -148,14 +150,13 @@
     function autoSaveField(field, val) { data[field] = val; save(); }
     function autoSaveGoal(field, val) { data.goals[field] = val; save(); }
 
-    // ⭐ 핵심 변경: 엔터 입력 시 바로 다음 입력을 위해 포커스 유지
     function addTodo(wIdx) { 
         const v = document.getElementById(`in-${wIdx}`); 
         if(v.value.trim()){ 
             data.weeks[wIdx].todos.push({text:v.value, done:false, important:false}); 
             v.value=''; 
             save(); 
-            render(wIdx); // 렌더링 시 해당 주차의 입력창에 포커스를 다시 줍니다.
+            render(wIdx); 
         } 
     }
 
@@ -188,16 +189,20 @@
             const weekStart = new Date(start);
             weekStart.setDate(start.getDate() + (wIdx * 7));
             const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+            
             const isCurrent = (today >= weekStart && today <= weekEnd);
+            // 📅 날짜 범위 표시 기능 (복구됨!)
             const dateStr = `${weekStart.getMonth()+1}/${weekStart.getDate()} ~ ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
+            
             const done = w.todos.filter(t => t.done).length;
             const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
             const color = per === 0 ? 'var(--border)' : (per <= 30 ? '#ff9500' : (per <= 70 ? '#007aff' : '#34c759'));
 
             board.innerHTML += `
                 <div class="week-card ${isCurrent ? 'active' : ''}" style="border-color: ${color}">
+                    <span class="week-date-badge">📅 ${dateStr}</span>
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="font-weight:bold;">${wIdx + 1}주차</span>
+                        <span style="font-weight:bold; font-size:1.1em;">${wIdx + 1}주차</span>
                         <span style="color:${color}; font-weight:900;">${per}%</span>
                     </div>
                     <div id="list-${wIdx}">
@@ -219,7 +224,6 @@
                 </div>`;
         });
 
-        // ⭐ 입력 완료 후 다시 해당 입력창에 포커스 자동 지정
         if(focusIdx !== null) {
             setTimeout(() => {
                 const targetInput = document.getElementById(`in-${focusIdx}`);
@@ -283,7 +287,6 @@
     function resetAll() { if(confirm("초기화하시겠습니까?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
 
     render();
-    // 일주일 백업 알림 (유지)
     const now = new Date().getTime();
     if (now - data.lastBackup > 7 * 24 * 60 * 60 * 1000) {
         if (confirm("마지막 백업으로부터 일주일이 지났습니다! 안전하게 백업하시겠습니까?")) exportData();
