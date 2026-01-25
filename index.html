@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Final Elite</title>
+    <title>12-Week Masterpiece: Final Elite V9.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -40,24 +40,30 @@
         .progress-bar-container { width: 100%; height: 8px; background: var(--border); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar-fill { height: 100%; width: 0%; transition: width 0.6s ease, background-color 0.3s; }
 
+        /* 명언 카드 수정: 파란색 세로 줄 추가 */
+        .quote-card { align-items: flex-start; padding-left: 20px; }
+        .quote-text { 
+            font-size: 1.1em; 
+            font-weight: 800; 
+            border-left: 4px solid var(--primary); /* 파란색 세로줄 */
+            padding-left: 15px; 
+            line-height: 1.5; 
+            cursor: pointer;
+            text-align: left;
+            word-break: keep-all;
+        }
+
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; }
         .vision-label { font-size: 1.3em; font-weight: 900; color: var(--primary); display: block; margin-bottom: 10px; }
         .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 95px; line-height: 1.6; font-size: 1.1em; }
 
-        /* 주차별 카드 및 투두 스타일 수정 */
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); }
-        
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 10px; border: 1px solid var(--border); }
-        
-        /* 별표 크기 및 정렬 수정 */
         .star-icon { font-size: 1.4em; cursor: pointer; user-select: none; color: #ccc; transition: 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; }
         .star-icon.active { color: var(--gold); }
-        
-        /* 체크박스 크기를 별표와 맞춤 */
         .todo-checkbox { width: 1.2em; height: 1.2em; cursor: pointer; accent-color: var(--success); flex-shrink: 0; }
-        
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; display: flex; align-items: center; }
 
         .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
@@ -68,13 +74,6 @@
         .btn-reset { background: #8e8e93; }
 
         #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 3000; }
-
-        @media print {
-            .save-dock, #save-status, .mini-btn, .date-picker-group, summary, button { display: none !important; }
-            body { background: white !important; color: black !important; padding: 0; }
-            .week-card { page-break-inside: avoid; border: 1px solid #ddd !important; }
-            details { display: block !important; }
-        }
     </style>
 </head>
 <body data-theme="dark">
@@ -90,15 +89,15 @@
     <div class="dashboard">
         <div class="stat-card">
             <div id="dday-display" class="dday-box">D-84</div>
-            <div class="date-picker-group">
-                <span>시작:</span>
-                <input type="date" id="start-date" class="date-picker" onchange="data.startDate=this.value; save(); render();">
+            <div class="date-picker-group" style="text-align: center; margin-top: 10px;">
+                <span style="font-size: 0.8em; font-weight: bold;">시작:</span>
+                <input type="date" id="start-date" style="border:none; background:transparent; color:var(--text); font-family:inherit; cursor:pointer;" onchange="data.startDate=this.value; save(); render();">
             </div>
         </div>
 
         <div class="quote-card" onclick="refreshQuote()">
             <div id="quote-display" class="quote-text">행동이 운명을 만든다.</div>
-            <div id="quote-author" style="color:var(--quote-sub); font-size:0.85em; margin-top:8px; margin-left:15px; font-weight:bold; text-align: left;"></div>
+            <div id="quote-author" style="color:var(--quote-sub); font-size:0.85em; margin-top:8px; margin-left:19px; font-weight:bold; text-align: left;"></div>
         </div>
 
         <div class="dual-card">
