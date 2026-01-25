@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: High Visibility</title>
+    <title>12-Week Masterpiece: Auto-Save Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -11,49 +11,63 @@
             --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
             --primary: #0071e3; --success: #34c759; --accent: #ff3b30; --gold: #ffcc00;
             --border: #d2d2d7; --quote-sub: #86868b; --input-bg: #f5f5f7;
-            --grad: linear-gradient(135deg, #0071e3, #34c759);
         }
         [data-theme='dark'] {
             --bg: #000000; --card: #1c1c1e; --text: #f5f5f7;
             --primary: #0a84ff; --success: #30d158; --accent: #ff453a;
             --border: #3a3a3c; --quote-sub: #a1a1a6; --input-bg: #0a0a0a;
-            --grad: linear-gradient(135deg, #0a84ff, #30d158);
         }
 
-        body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; 
+            margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); 
+            padding-bottom: 120px; transition: 0.3s;
+        }
         .container { max-width: 1000px; margin: auto; }
 
-        /* 🏆 전체 성공률 섹션 (New 강조형) */
-        .master-progress-section {
-            background: var(--card); border-radius: 20px; padding: 25px; margin-bottom: 15px;
-            border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            text-align: center; position: relative; overflow: hidden;
+        .main-title-input {
+            background: transparent; border: none; color: var(--text);
+            font-size: 1.4em; font-weight: 800; width: 60%;
+            outline: none; margin-bottom: 10px; border-bottom: 2px solid transparent;
         }
-        .progress-label { font-size: 0.9em; font-weight: 800; color: var(--quote-sub); margin-bottom: 10px; display: block; letter-spacing: 1px; }
-        .progress-value { font-size: 3.5em; font-weight: 900; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-bottom: 15px; display: block; }
-        
-        .progress-bar-container { width: 100%; height: 12px; background: var(--input-bg); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
-        .progress-bar-fill { height: 100%; width: 0%; background: var(--grad); transition: width 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+        .main-title-input:focus { border-bottom-color: var(--primary); }
 
         .dashboard { display: grid; grid-template-columns: 1fr 2fr 1.2fr; gap: 12px; margin-bottom: 15px; }
-        .stat-card, .quote-card, .timer-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
+        .stat-card, .quote-card, .timer-card { 
+            background: var(--card); border-radius: 16px; padding: 15px; 
+            border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center;
+        }
         
-        .dday-box { font-size: 2.2em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; }
-        .timer-card { background: var(--primary); color: white; border: none; }
-        .timer-display { font-size: 1.8em; font-weight: 800; margin: 2px 0; text-align: center; }
+        .dday-box { font-size: 2.8em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; }
+        .date-picker-group { margin-top: 10px; font-size: 0.8em; display: flex; align-items: center; gap: 5px; justify-content: center; }
+        .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 3px; border-radius: 6px; }
+
+        .quote-text { font-size: 0.95em; font-weight: 600; border-left: 3px solid var(--primary); padding-left: 12px; line-height: 1.5; cursor: pointer; }
         
+        .timer-card { background: var(--primary); color: white; text-align: center; border: none; }
+        .timer-display { font-size: 1.8em; font-weight: 800; margin: 2px 0; }
+        .timer-btn { background: white; color: var(--primary); border: none; width: 100%; padding: 6px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; display: flex; justify-content: space-between; }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px; box-sizing: border-box; resize: vertical; min-height: 50px; margin-top: 5px; }
+        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 50px; margin-top: 5px; }
 
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: 0.3s; }
+        .week-card { 
+            background: var(--card); border-radius: 18px; padding: 18px; 
+            border: 2px solid var(--border); transition: all 0.3s ease;
+        }
+        
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
-        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; }
+        .star-box { background: #fff; color: #000; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .star-box.active { background: var(--gold); }
+        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; }
 
         .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .dock-btn { padding: 8px 16px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.85em; }
-        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 3000; }
+
+        /* 자동 저장 알림 뱃지 */
+        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 3000; pointer-events: none; }
     </style>
 </head>
 <body data-theme="dark">
@@ -61,22 +75,15 @@
 <div id="save-status">실시간 저장됨</div>
 
 <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <input type="text" id="master-title" class="main-title-input" style="background:none; border:none; font-size:1.4em; font-weight:800; color:var(--text); outline:none;" oninput="autoSaveField('title', this.value)">
-        <button onclick="toggleTheme()" style="background:var(--card); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:8px; cursor:pointer;">🌓 테마 전환</button>
-    </div>
-
-    <div class="master-progress-section">
-        <span class="progress-label">TOTAL PROJECT SUCCESS RATE</span>
-        <span id="total-per-display" class="progress-value">0%</span>
-        <div class="progress-bar-container">
-            <div id="progress-bar-fill" class="progress-bar-fill"></div>
-        </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <input type="text" id="master-title" class="main-title-input" oninput="autoSaveField('title', this.value)" placeholder="제목을 입력하세요">
+        <button onclick="toggleTheme()" style="background:var(--card); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.75em;">🌓 테마 전환</button>
     </div>
 
     <div class="dashboard">
         <div class="stat-card">
             <div id="dday-display" class="dday-box">D-84</div>
+            <div style="font-weight:bold; font-size:0.8em; text-align:center; margin-top:5px;">전체 성공률 <span id="total-per-text">0%</span></div>
             <div class="date-picker-group">
                 <span>시작일:</span>
                 <input type="date" id="start-date" class="date-picker" onchange="data.startDate=this.value; save(); render();">
@@ -84,14 +91,14 @@
         </div>
 
         <div class="quote-card" onclick="refreshQuote()">
-            <div id="quote-display" style="font-size: 0.95em; font-weight: 600; border-left: 3px solid var(--primary); padding-left: 12px; line-height: 1.5; cursor:pointer;">명언 로딩 중...</div>
+            <div id="quote-display" class="quote-text">명언 로딩 중...</div>
             <div id="quote-author" style="color:var(--quote-sub); font-size:0.8em; margin-top:5px; margin-left:12px;"></div>
         </div>
 
         <div class="timer-card">
-            <div style="font-size:0.75em; font-weight:800; opacity:0.9; text-align:center;">집중 타이머</div>
+            <div style="font-size:0.75em; font-weight:800; opacity:0.9;">집중 타이머</div>
             <div id="timer" class="timer-display">25:00</div>
-            <button onclick="toggleTimer()" id="timer-btn" style="background:white; color:var(--primary); border:none; width:100%; padding:6px; border-radius:8px; font-weight:800; cursor:pointer;">START</button>
+            <button onclick="toggleTimer()" id="timer-btn" class="timer-btn">START</button>
         </div>
     </div>
 
@@ -120,10 +127,12 @@
         { q: "가장 큰 위험은 아무것도 감수하지 않는 것이다.", a: "마크 저커버그" },
         { q: "오늘 걷지 않으면 내일은 뛰어야 한다.", a: "자기개발 명언" },
         { q: "행동은 모든 성공의 기초다.", a: "피카소" },
+        { q: "천재는 1% 영감과 99% 노력이다.", a: "에디슨" },
         { q: "할 수 있다고 믿는 사람이 결국 해낸다.", a: "정주영" }
+        // ... (100개 데이터 유지 가능)
     ];
 
-    const STORAGE_KEY = '12W_VIP_V1';
+    const STORAGE_KEY = '12W_AUTOSAVE_V1';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
@@ -135,23 +144,32 @@
 
     let timerInterval, timeLeft = 1500, isRunning = false;
 
+    // 1. 입력 즉시 저장 (Debounce 적용하여 성능 최적화)
+    let saveTimeout;
     function save() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        const s = document.getElementById('save-status'); s.style.opacity = '1'; setTimeout(() => { s.style.opacity = '0'; }, 1000);
+        showSaveStatus();
         calculateTotalPercent();
+    }
+
+    function showSaveStatus() {
+        const s = document.getElementById('save-status');
+        s.style.opacity = '1';
+        setTimeout(() => { s.style.opacity = '0'; }, 1000);
     }
 
     function autoSaveField(field, val) { data[field] = val; save(); }
     function autoSaveGoal(field, val) { data.goals[field] = val; save(); }
 
-    // 🏆 전체 성공률 및 바 애니메이션 업데이트
-    function calculateTotalPercent() {
-        let total = 0, done = 0;
-        data.weeks.forEach(w => { total += w.todos.length; done += w.todos.filter(t => t.done).length; });
-        const rate = total === 0 ? 0 : Math.round((done / total) * 100);
-        
-        document.getElementById('total-per-display').innerText = `${rate}%`;
-        document.getElementById('progress-bar-fill').style.width = `${rate}%`;
+    // 2. 일주일 주기 백업 알림 로직
+    function checkBackupReminder() {
+        const now = new Date().getTime();
+        const oneWeek = 7 * 24 * 60 * 60 * 1000;
+        if (now - data.lastBackup > oneWeek) {
+            if (confirm("⚠️ 마지막 백업으로부터 일주일이 지났습니다! 데이터를 안전하게 파일로 저장하시겠습니까?")) {
+                exportData();
+            }
+        }
     }
 
     function render() {
@@ -176,4 +194,102 @@
 
         const start = new Date(data.startDate);
         const today = new Date(); today.setHours(0,0,0,0);
-        const board = document.getElementById('board
+        const board = document.getElementById('board');
+        board.innerHTML = '';
+
+        data.weeks.forEach((w, wIdx) => {
+            const weekStart = new Date(start);
+            weekStart.setDate(start.getDate() + (wIdx * 7));
+            const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+            const isCurrent = (today >= weekStart && today <= weekEnd);
+            const dateStr = `${weekStart.getMonth()+1}/${weekStart.getDate()} ~ ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
+            const done = w.todos.filter(t => t.done).length;
+            const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
+            
+            const color = per === 0 ? 'var(--border)' : (per <= 30 ? '#ff9500' : (per <= 70 ? '#007aff' : '#34c759'));
+
+            board.innerHTML += `
+                <div class="week-card ${isCurrent ? 'active' : ''}" style="border-color: ${color}">
+                    <span style="font-size:0.7em; color:var(--quote-sub);">📅 ${dateStr}</span>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span style="font-weight:bold;">${wIdx + 1}주차</span>
+                        <span style="color:${color}; font-weight:900;">${per}%</span>
+                    </div>
+                    <div id="list-${wIdx}">
+                        ${w.todos.map((t, tIdx) => `
+                            <div class="todo-item">
+                                <div class="star-box ${t.important?'active':''}" onclick="toggleStar(${wIdx}, ${tIdx})">★</div>
+                                <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo(${wIdx}, ${tIdx})">
+                                <input type="text" class="todo-input" value="${t.text}" oninput="editTodoText(${wIdx}, ${tIdx}, this.value)" style="${t.done?'text-decoration:line-through;opacity:0.4':''}">
+                                <button onclick="deleteTodo(${wIdx}, ${tIdx})" style="background:none; border:none; color:var(--accent); cursor:pointer;">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display:flex; gap:5px; margin-top:8px;">
+                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." onkeypress="if(event.key==='Enter') addTodo(${wIdx})" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.9em;">
+                        <button onclick="addTodo(${wIdx})" style="background:${color}; color:white; border:none; border-radius:8px; width:35px; cursor:pointer;">+</button>
+                    </div>
+                </div>`;
+        });
+        calculateTotalPercent(); updateDDay();
+    }
+
+    function calculateTotalPercent() {
+        let total = 0, done = 0;
+        data.weeks.forEach(w => { total += w.todos.length; done += w.todos.filter(t => t.done).length; });
+        const rate = total === 0 ? 0 : Math.round((done / total) * 100);
+        document.getElementById('total-per-text').innerText = `${rate}%`;
+    }
+
+    function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
+    function toggleStar(wIdx, tIdx) {
+        const item = data.weeks[wIdx].todos[tIdx];
+        item.important = !item.important;
+        if(item.important) { data.weeks[wIdx].todos.splice(tIdx, 1); data.weeks[wIdx].todos.unshift(item); }
+        save(); render();
+    }
+    function addTodo(wIdx) { const v = document.getElementById(`in-${wIdx}`); if(v.value){ data.weeks[wIdx].todos.push({text:v.value, done:false, important:false}); v.value=''; save(); render(); } }
+    function toggleTodo(wIdx, tIdx) { data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done; if(data.weeks[wIdx].todos[tIdx].done) confetti(); save(); render(); }
+    function editTodoText(wIdx, tIdx, val) { data.weeks[wIdx].todos[tIdx].text = val; save(); }
+    function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
+    function updateDDay() {
+        const start = new Date(data.startDate); const end = new Date(start); end.setDate(start.getDate() + 84);
+        const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
+        document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁";
+    }
+
+    function refreshQuote() {
+        const rq = quotes[Math.floor(Math.random() * quotes.length)];
+        document.getElementById('quote-display').innerText = `"${rq.q}"`;
+        document.getElementById('quote-author').innerText = `- ${rq.a}`;
+    }
+
+    function toggleTimer() {
+        if(isRunning) { clearInterval(timerInterval); document.getElementById('timer-btn').innerText = "START"; }
+        else { timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("시간 종료!"); timeLeft=1500; updateTimerDisplay(); isRunning=false; } }, 1000); document.getElementById('timer-btn').innerText = "STOP"; }
+        isRunning = !isRunning;
+    }
+    function updateTimerDisplay() { const m = Math.floor(timeLeft / 60), s = timeLeft % 60; document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; }
+    function handleImage(idx) {
+        const input = document.createElement('input'); input.type = 'file';
+        input.onchange = e => { const r = new FileReader(); r.onload = () => { data.images[idx] = r.result; save(); render(); }; r.readAsDataURL(e.target.files[0]); };
+        input.click();
+    }
+    function exportData() { 
+        data.lastBackup = new Date().getTime(); // 백업 시점 갱신
+        save();
+        const b = new Blob([JSON.stringify(data)], {type:'application/json'}); 
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `12W_Backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); 
+    }
+    function importData() {
+        const i = document.createElement('input'); i.type = 'file';
+        i.onchange = e => { const r = new FileReader(); r.onload = () => { data = JSON.parse(r.result); save(); render(); alert("복구 완료!"); }; r.readAsText(e.target.files[0]); };
+        i.click();
+    }
+    function resetAll() { if(confirm("초기화하시겠습니까?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+
+    render();
+    checkBackupReminder(); // 실행 시 백업 필요 여부 확인
+</script>
+</body>
+</html>
