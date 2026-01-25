@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Compact</title>
+    <title>12-Week Masterpiece</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -19,74 +19,62 @@
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; 
             margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); 
-            padding-bottom: 120px; line-height: 1.4; transition: 0.3s;
+            padding-bottom: 120px; transition: 0.3s;
         }
         .container { max-width: 1000px; margin: auto; }
 
-        /* 1. UI 크기 최적화 (Compact) */
         .main-title-input {
             background: transparent; border: none; color: var(--text);
             font-size: 1.4em; font-weight: 800; width: 60%;
-            outline: none; margin: 0; padding: 5px 0; transition: 0.2s;
+            outline: none; margin-bottom: 10px;
         }
-        .main-title-input:focus { border-bottom: 2px solid var(--primary); }
 
-        .dashboard { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 2fr 1.2fr; gap: 12px; margin-bottom: 15px; }
         
         .stat-card, .quote-card, .timer-card { 
             background: var(--card); border-radius: 16px; padding: 15px; 
             border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center;
         }
         
-        /* 2. D-Day 및 시작일 문구 */
         .dday-box { font-size: 2.8em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; }
         .date-picker-group { margin-top: 10px; font-size: 0.8em; display: flex; align-items: center; gap: 5px; justify-content: center; }
-        .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 3px; border-radius: 6px; cursor: pointer; }
+        .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 3px; border-radius: 6px; }
 
-        .quote-text { font-size: 0.95em; font-weight: 600; border-left: 3px solid var(--primary); padding-left: 12px; }
+        .quote-text { font-size: 0.95em; font-weight: 600; border-left: 3px solid var(--primary); padding-left: 12px; line-height: 1.5; }
+        
+        /* 1. 집중 타이머 제목 변경 */
         .timer-card { background: var(--primary); color: white; text-align: center; border: none; }
         .timer-display { font-size: 1.8em; font-weight: 800; margin: 2px 0; }
-        .timer-btn { background: white; color: var(--primary); border: none; width: 100%; padding: 6px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.8em; }
+        .timer-btn { background: white; color: var(--primary); border: none; width: 100%; padding: 6px; border-radius: 8px; font-weight: 800; cursor: pointer; }
 
-        /* 4. 비전보드 접이식 (Details/Summary) */
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
-        .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-        .vision-section summary::after { content: '▼'; font-size: 0.7em; }
-        .vision-section[open] summary::after { content: '▲'; }
+        .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; display: flex; justify-content: space-between; }
         
-        .vision-content { padding: 15px; }
-        .vision-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .vision-item { aspect-ratio: 1/1; background: var(--input-bg); border: 1px dashed var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.5em; overflow: hidden; }
-        
-        .goal-group { margin-bottom: 10px; }
-        .goal-label { font-weight: bold; margin-bottom: 4px; display: block; color: var(--primary); font-size: 0.85em; }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 50px; font-size: 0.9em; }
-
-        .chart-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .final-success-rate { font-size: 1.1em; font-weight: 900; color: var(--primary); }
+        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 50px; }
 
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .week-card { background: var(--card); border-radius: 18px; padding: 15px; border: 1px solid var(--border); position: relative; }
+        .week-card { background: var(--card); border-radius: 18px; padding: 15px; border: 1px solid var(--border); }
         .week-card.active { border: 2px solid var(--primary); }
+        
+        .week-date-info { font-size: 0.75em; color: var(--quote-sub); margin-bottom: 8px; display: block; }
+
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
-        .star-box { background: #fff; color: #000; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 1em; }
+        .star-box { background: #fff; color: #000; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
         .star-box.active { background: var(--gold); }
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; }
 
-        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; }
         .dock-btn { padding: 8px 16px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.85em; }
-
-        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } .main-title-input { width: 100%; } }
     </style>
 </head>
 <body data-theme="dark">
 
 <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <input type="text" id="master-title" class="main-title-input" onchange="data.title=this.value; save();">
-        <button onclick="toggleTheme()" style="background:var(--card); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.8em;">🌓 테마 전환</button>
+        <button onclick="toggleTheme()" style="background:var(--card); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.75em;">🌓 테마 전환</button>
     </div>
 
     <div class="dashboard">
@@ -100,43 +88,26 @@
         </div>
 
         <div class="quote-card">
-            <div id="quote-display" class="quote-text">"..."</div>
+            <div id="quote-display" class="quote-text">명언 로딩 중...</div>
             <div id="quote-author" style="color:var(--quote-sub); font-size:0.8em; margin-top:5px; margin-left:12px;"></div>
         </div>
 
         <div class="timer-card">
-            <div style="font-size:0.7em; font-weight:800; opacity:0.8;">FOCUS</div>
+            <div style="font-size:0.75em; font-weight:800; opacity:0.9;">집중 타이머</div>
             <div id="timer" class="timer-display">25:00</div>
             <button onclick="toggleTimer()" id="timer-btn" class="timer-btn">START</button>
         </div>
     </div>
 
-    <details class="vision-section" open>
+    <details class="vision-section">
         <summary>🖼️ 비전 보드 & 핵심 목표 설정</summary>
-        <div class="vision-content">
-            <div class="vision-grid" id="vision-gallery"></div>
-            <div class="goal-group">
-                <span class="goal-label">✨ 원대한 목표 (장기비전)</span>
-                <textarea id="goal-long" class="goal-textarea" onchange="data.goals.long=this.value; save();" placeholder="내용을 입력하세요..."></textarea>
-            </div>
-            <div class="goal-group">
-                <span class="goal-label">🎯 3년 목표</span>
-                <textarea id="goal-three" class="goal-textarea" onchange="data.goals.three=this.value; save();" placeholder="내용을 입력하세요..."></textarea>
-            </div>
-            <div class="goal-group">
-                <span class="goal-label">🚀 12주 핵심 계획</span>
-                <textarea id="goal-twelve" class="goal-textarea" onchange="data.goals.twelve=this.value; save();" placeholder="내용을 입력하세요..."></textarea>
-            </div>
+        <div style="padding: 15px;">
+            <div id="vision-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px;"></div>
+            <div style="margin-bottom:10px;"><span style="font-size:0.8em; font-weight:bold; color:var(--primary);">✨ 원대한 목표 (장기비전)</span><textarea id="goal-long" class="goal-textarea" onchange="data.goals.long=this.value; save();"></textarea></div>
+            <div style="margin-bottom:10px;"><span style="font-size:0.8em; font-weight:bold; color:var(--primary);">🎯 3년 목표</span><textarea id="goal-three" class="goal-textarea" onchange="data.goals.three=this.value; save();"></textarea></div>
+            <div><span style="font-size:0.8em; font-weight:bold; color:var(--primary);">🚀 12주 핵심 계획</span><textarea id="goal-twelve" class="goal-textarea" onchange="data.goals.twelve=this.value; save();"></textarea></div>
         </div>
     </details>
-
-    <div class="chart-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h4 style="margin:0;">📊 주간 성공 흐름</h4>
-            <div class="final-success-rate">성공률: <span id="final-rate">0%</span></div>
-        </div>
-        <div style="height:150px;"><canvas id="weeklyChart"></canvas></div>
-    </div>
 
     <div class="week-grid" id="board"></div>
 </div>
@@ -149,29 +120,122 @@
 </div>
 
 <script>
+    // 2. 랜덤 명언 100개 (기업인, 철학, 심리, 자기개발)
     const quotes = [
-        { q: "시련은 있어도 실패는 없다.", a: "정주영" },
         { q: "가장 큰 위험은 아무것도 감수하지 않는 것이다.", a: "마크 저커버그" },
-        { q: "혁신은 리더와 추종자를 구분하는 잣대다.", a: "스티브 잡스" },
-        { q: "작은 일에 충실한 사람이 큰 일에도 충실할 수 있다.", a: "성경" },
-        { q: "미래를 예측하는 가장 좋은 방법은 미래를 창조하는 것이다.", a: "피터 드러커" },
-        { q: "할 수 있다고 믿는 사람은 결국 해낸다.", a: "정주영" },
+        { q: "성공은 최종적인 것이 아니며 실패는 치명적인 것이 아니다.", a: "윈스턴 처칠" },
         { q: "실패는 다시 시작할 수 있는 기회일 뿐이다.", a: "헨리 포드" },
-        { q: "운은 준비가 기회를 만났을 때 일어난다.", a: "세네카" }
+        { q: "혁신은 리더와 추종자를 구분하는 잣대다.", a: "스티브 잡스" },
+        { q: "시작하기 위해 위대해질 필요는 없지만, 위대해지기 위해 시작해야 한다.", a: "지그 지글러" },
+        { q: "어제와 똑같이 살면서 다른 미래를 기대하는 것은 정신병이다.", a: "아인슈타인" },
+        { q: "측정할 수 없으면 관리할 수 없다.", a: "피터 드러커" },
+        { q: "운은 준비가 기회를 만났을 때 일어난다.", a: "세네카" },
+        { q: "할 수 있다고 믿는 사람은 결국 해낸다.", a: "정주영" },
+        { q: "시련은 있어도 실패는 없다.", a: "정주영" },
+        { q: "내일 죽을 것처럼 살고, 영원히 살 것처럼 배워라.", a: "간디" },
+        { q: "한계를 인정하면 한계를 넘어서게 된다.", a: "아인슈타인" },
+        { q: "고통은 일시적이지만 포기는 영원하다.", a: "랜스 암스트롱" },
+        { q: "계획 없는 목표는 단지 소망에 불과하다.", a: "생텍쥐페리" },
+        { q: "가장 강력한 무기는 인내다.", a: "플라톤" },
+        { q: "모든 성취의 시작점은 갈망이다.", a: "나폴레온 힐" },
+        { q: "천재성은 1%의 영감과 99%의 노력이다.", a: "에디슨" },
+        { q: "행동은 모든 성공의 기초 열쇠다.", a: "피카소" },
+        { q: "위험을 감수하지 않으면 위험보다 더 큰 위험에 직면한다.", a: "에리카 종" },
+        { q: "성공의 비결은 평범한 일을 비범하게 하는 것이다.", a: "록펠러" },
+        { q: "생각을 바꾸면 세상이 바뀐다.", a: "노먼 빈센트 필" },
+        { q: "과거를 바꿀 순 없지만 미래는 바꿀 수 있다.", a: "유명 명언" },
+        { q: "준비에 실패하는 것은 실패를 준비하는 것이다.", a: "벤자민 프랭클린" },
+        { q: "열정 없이 이루어진 위대한 일은 없다.", a: "랄프 왈도 에머슨" },
+        { q: "문제는 목적지에 얼마나 빨리 가느냐가 아니라 어디로 가느냐이다.", a: "심리학자" },
+        { q: "가장 유능한 사람은 끊임없이 배우는 사람이다.", a: "괴테" },
+        { q: "작은 일에 정성을 다하면 큰 일도 이룰 수 있다.", a: "중용" },
+        { q: "위대한 일은 작은 일들이 모여 이루어진다.", a: "빈센트 반 고흐" },
+        { q: "탁월함은 행동이 아니라 습관이다.", a: "아리스토텔레스" },
+        { q: "성공이 당신을 찾게 하지 말고 당신이 성공을 찾아가라.", a: "자기개발 명언" },
+        { q: "실패는 성공을 향한 디딤돌일 뿐이다.", a: "철학자" },
+        { q: "스스로를 믿는 순간 이미 반은 성공한 것이다.", a: "루즈벨트" },
+        { q: "가장 늦었다고 생각할 때가 가장 빠를 때다.", a: "한국 속담" },
+        { q: "목표를 낮게 잡는 것이 가장 큰 위험이다.", a: "미켈란젤로" },
+        { q: "오늘 걷지 않으면 내일은 뛰어야 한다.", a: "자기개발 명언" },
+        { q: "태도는 사소한 것이지만 결과는 거대하다.", a: "윈스턴 처칠" },
+        { q: "용기란 두려움이 없는 것이 아니라 두려움을 이겨내는 것이다.", a: "넬슨 만델라" },
+        { q: "변화의 시작은 스스로를 인정하는 것부터다.", a: "심리학 명언" },
+        { q: "집중력은 모든 성취의 근원이다.", a: "철학자" },
+        { q: "성공은 행동하는 사람에게 찾아온다.", a: "기업인 명언" },
+        { q: "인생은 속도가 아니라 방향이다.", a: "괴테" },
+        { q: "중요한 것은 꺾이지 않는 마음이다.", a: "최신 명언" },
+        { q: "내일의 당신은 오늘의 당신이 만든다.", a: "철학자" },
+        { q: "포기하는 순간 게임은 끝나는 것이다.", a: "슬램덩크" },
+        { q: "자신을 이기는 사람이 진정한 승자다.", a: "노자" },
+        { q: "한 걸음 한 걸음이 모여 천 리 길을 간다.", a: "공자" },
+        { q: "배움은 멈추는 순간 늙기 시작한다.", a: "에디슨" },
+        { q: "모든 시련 뒤에는 보상이 기다린다.", a: "심리학자" },
+        { q: "성공은 반복되는 작은 노력이 합쳐진 결과다.", a: "로버트 콜리어" },
+        { q: "나를 죽이지 못하는 고통은 나를 더 강하게 만든다.", a: "니체" },
+        { q: "시간을 지배하는 자가 인생을 지배한다.", a: "벤자민 프랭클린" },
+        { q: "최고가 되고 싶다면 최선의 노력을 다하라.", a: "자기개발 명언" },
+        { q: "꿈을 꾸기에 늦은 나이는 없다.", a: "철학자" },
+        { q: "도전하지 않으면 얻는 것도 없다.", a: "No Pain No Gain" },
+        { q: "자신의 길을 가는 사람만이 진정한 자유를 얻는다.", a: "사르트르" },
+        { q: "행복은 성취의 기쁨 속에 있다.", a: "루즈벨트" },
+        { q: "작은 습관이 큰 변화를 만든다.", a: "제임스 클리어" },
+        { q: "기회는 문을 두드리는 자에게 열린다.", a: "기업인 명언" },
+        { q: "오늘이 당신의 남은 인생의 첫날이다.", a: "유명 명언" },
+        { q: "결정은 신속하게, 실행은 끈기 있게.", a: "성공의 법칙" },
+        { q: "비전 없는 실행은 시간 낭비일 뿐이다.", a: "비즈니스 명언" },
+        { q: "우리가 두려워해야 할 유일한 것은 두려움 그 자체다.", a: "루즈벨트" },
+        { q: "성공은 준비된 자의 몫이다.", a: "철학자" },
+        { q: "가장 강력한 에너지는 열정이다.", a: "기업인 명언" },
+        { q: "과거에 얽매이지 말고 미래를 설계하라.", a: "심리학자" },
+        { q: "노력은 배신하지 않는다.", a: "자기개발 명언" },
+        { q: "자신을 사랑하는 것이 모든 사랑의 시작이다.", a: "심리학 명언" },
+        { q: "생각하는 대로 살지 않으면 사는 대로 생각하게 된다.", a: "폴 발레리" },
+        { q: "지식보다 중요한 것은 상상력이다.", a: "아인슈타인" },
+        { q: "길이 없으면 길을 찾아라, 없으면 만들어라.", a: "정주영" },
+        { q: "오늘의 인내가 내일의 영광을 만든다.", a: "철학자" },
+        { q: "최선을 다한 실패는 성공보다 값지다.", a: "자기개발 명언" },
+        { q: "끈기는 모든 장애를 이겨내는 힘이다.", a: "성공의 비결" },
+        { q: "자기 자신을 믿는 힘이 기적을 만든다.", a: "심리학 명언" },
+        { q: "인생에서 가장 큰 모험은 당신이 꿈꾸는 삶을 사는 것이다.", a: "오프라 윈프리" },
+        { q: "지금 시작하라, 완벽할 필요는 없다.", a: "자기개발 명언" },
+        { q: "성공의 반대말은 실패가 아니라 포기다.", a: "철학자" },
+        { q: "말하는 대로 이루어진다.", a: "언어의 힘" },
+        { q: "자신의 한계는 스스로 정하는 것이다.", a: "스포츠 명언" },
+        { q: "가치 있는 일에는 고통이 따른다.", a: "심리학자" },
+        { q: "매일 1%씩 나아지면 1년 뒤엔 37배 성장한다.", a: "아주 작은 습관의 힘" },
+        { q: "당신이 할 수 있다고 생각하든 할 수 없다고 생각하든 당신이 옳다.", a: "헨리 포드" },
+        { q: "가장 큰 승리는 자신을 이기는 것이다.", a: "플라톤" },
+        { q: "미루는 습관은 꿈을 좀먹는 벌레다.", a: "자기개발 명언" },
+        { q: "시작이 반이다.", a: "한국 속담" },
+        { q: "환경을 탓하지 말고 환경을 바꿔라.", a: "기업인 명언" },
+        { q: "성공은 당신이 얼마나 멀리 왔는지가 아니라 얼마나 많이 극복했느냐다.", a: "명언" },
+        { q: "오늘의 고난은 내일의 힘이 된다.", a: "철학자" },
+        { q: "진정한 실력은 위기의 순간에 나타난다.", a: "비즈니스 명언" },
+        { q: "목표가 확실하면 흔들리지 않는다.", a: "자기개발 명언" },
+        { q: "자신감을 가지면 이미 절반은 이긴 것이다.", a: "심리학 명언" },
+        { q: "꿈을 기록하면 목표가 되고, 실행하면 현실이 된다.", a: "명언" },
+        { q: "정상은 언제나 붐비지 않는다.", a: "성공 명언" },
+        { q: "기다리지 마라, 적절한 때는 결코 오지 않는다.", a: "나폴레온 힐" },
+        { q: "실패했을 때가 아니라 포기했을 때 끝나는 것이다.", a: "철학자" },
+        { q: "모든 어려움의 한가운데에는 기회가 있다.", a: "아인슈타인" },
+        { q: "자신의 능력을 과소평가하지 마라.", a: "심리학자" },
+        { q: "오늘을 최고의 날로 만들어라.", a: "자기개발 명언" },
+        { q: "성취는 노력의 부산물이다.", a: "기업인 명언" },
+        { q: "끝날 때까지 끝난 게 아니다.", a: "요기 베라" }
     ];
 
-    const STORAGE_KEY = '12W_MASTER_COMPACT_V1';
+    const STORAGE_KEY = '12W_MASTER_V_FINAL';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-        theme: 'dark', title: "🏆 12-Week Masterpiece",
+        theme: 'dark', title: "🏆 12주 인생 마스터피스",
         startDate: new Date().toISOString().split('T')[0],
         goals: { long: "", three: "", twelve: "" },
         images: [null, null, null],
-        weeks: Array.from({length: 12}, (_, i) => ({ title: `Week ${i+1}`, todos: [], review: "" }))
+        weeks: Array.from({length: 12}, (_, i) => ({ title: `${i+1}주차`, todos: [], review: "" }))
     };
 
-    let timerInterval, timeLeft = 1500, isRunning = false, myChart;
+    let timerInterval, timeLeft = 1500, isRunning = false;
 
-    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateChart(); calculateTotalPercent(); }
+    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); calculateTotalPercent(); }
     function manualSave() { save(); confetti(); alert("저장 완료!"); }
 
     function render() {
@@ -190,27 +254,35 @@
         gallery.innerHTML = '';
         data.images.forEach((img, i) => {
             const div = document.createElement('div');
-            div.className = 'vision-item';
+            div.style = "aspect-ratio:1/1; background:var(--input-bg); border:1px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.5em; overflow:hidden;";
             div.onclick = () => handleImage(i);
             div.innerHTML = img ? `<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : '+';
             gallery.appendChild(div);
         });
 
+        // 4. 디데이에 맞춘 주차별 날짜 자동 계산
         const start = new Date(data.startDate);
         const today = new Date(); today.setHours(0,0,0,0);
-        const currentWeekIdx = Math.floor((today - start) / (1000 * 60 * 60 * 24 * 7));
-
         const board = document.getElementById('board');
         board.innerHTML = '';
+
         data.weeks.forEach((w, wIdx) => {
-            const isCurrent = wIdx === currentWeekIdx;
+            const weekStart = new Date(start);
+            weekStart.setDate(start.getDate() + (wIdx * 7));
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            
+            const isCurrent = (today >= weekStart && today <= weekEnd);
+            const dateStr = `${weekStart.getMonth()+1}/${weekStart.getDate()} ~ ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
+
             const done = w.todos.filter(t => t.done).length;
             const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
 
             board.innerHTML += `
                 <div class="week-card ${isCurrent ? 'active' : ''}">
+                    <span class="week-date-info">📅 ${dateStr}</span>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <span style="font-weight:bold; font-size:1em;">${w.title}</span>
+                        <span style="font-weight:bold; font-size:1em;">${wIdx + 1}주차</span>
                         <span style="color:var(--primary); font-weight:800; font-size:0.9em;">${per}%</span>
                     </div>
                     <div id="list-${wIdx}">
@@ -224,12 +296,12 @@
                         `).join('')}
                     </div>
                     <div style="display:flex; gap:5px; margin-top:8px;">
-                        <input type="text" id="in-${wIdx}" placeholder="할 일..." onkeypress="if(event.key==='Enter') addTodo(${wIdx})" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.9em;">
+                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." onkeypress="if(event.key==='Enter') addTodo(${wIdx})" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.9em;">
                         <button onclick="addTodo(${wIdx})" style="background:var(--primary); color:white; border:none; border-radius:8px; width:35px; cursor:pointer;">+</button>
                     </div>
                 </div>`;
         });
-        updateChart(); calculateTotalPercent(); updateDDay();
+        calculateTotalPercent(); updateDDay();
     }
 
     function calculateTotalPercent() {
@@ -237,7 +309,6 @@
         data.weeks.forEach(w => { total += w.todos.length; done += w.todos.filter(t => t.done).length; });
         const rate = total === 0 ? 0 : Math.round((done / total) * 100);
         document.getElementById('total-per-text').innerText = `${rate}%`;
-        document.getElementById('final-rate').innerText = `${rate}%`;
     }
 
     function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
@@ -259,23 +330,9 @@
         document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁";
     }
 
-    function updateChart() {
-        const ctx = document.getElementById('weeklyChart').getContext('2d');
-        const scores = data.weeks.map(w => w.todos.length === 0 ? 0 : Math.round((w.todos.filter(t => t.done).length / w.todos.length) * 100));
-        if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.weeks.map(w => w.title),
-                datasets: [{ data: scores, borderColor: '#007aff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,113,227,0.1)', pointRadius: 3 }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100, ticks: { display: false }, grid: { color: '#2c2c2e' } }, x: { ticks: { color: '#888', font: { size: 9 } }, grid: { display: false } } }, plugins: { legend: { display: false } } }
-        });
-    }
-
     function toggleTimer() {
         if(isRunning) { clearInterval(timerInterval); document.getElementById('timer-btn').innerText = "START"; }
-        else { timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("시간 종료!"); timeLeft=1500; updateTimerDisplay(); isRunning=false; } }, 1000); document.getElementById('timer-btn').innerText = "STOP"; }
+        else { timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("집중 종료!"); timeLeft=1500; updateTimerDisplay(); isRunning=false; } }, 1000); document.getElementById('timer-btn').innerText = "STOP"; }
         isRunning = !isRunning;
     }
     function updateTimerDisplay() { const m = Math.floor(timeLeft / 60), s = timeLeft % 60; document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; }
@@ -284,7 +341,7 @@
         input.onchange = e => { const r = new FileReader(); r.onload = () => { data.images[idx] = r.result; save(); render(); }; r.readAsDataURL(e.target.files[0]); };
         input.click();
     }
-    function exportData() { const b = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = '12week_master_backup.json'; a.click(); }
+    function exportData() { const b = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = '12week_masterpiece.json'; a.click(); }
     function importData() {
         const i = document.createElement('input'); i.type = 'file';
         i.onchange = e => { const r = new FileReader(); r.onload = () => { data = JSON.parse(r.result); save(); render(); alert("복구 완료!"); }; r.readAsText(e.target.files[0]); };
