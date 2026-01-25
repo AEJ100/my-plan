@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Final Elite V9.0</title>
+    <title>12-Week Masterpiece: Final Elite V9.1</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -21,15 +21,12 @@
         .container { max-width: 1000px; margin: auto; }
 
         .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 60%; outline: none; margin-bottom: 10px; border-bottom: 2px solid transparent; }
-        .main-title-input:focus { border-bottom-color: var(--primary); }
-
         .dashboard { display: grid; grid-template-columns: 1fr 1.8fr 1.5fr; gap: 12px; margin-bottom: 15px; }
         .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
         
         .dday-box { font-size: 3em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; letter-spacing: -1.5px; }
         .mini-display { font-size: 1.8em; font-weight: 900; margin: 4px 0; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
-        #total-per-text { font-size: 2.2em; }
-
+        
         .dual-card { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
         .timer-part, .progress-part { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; padding: 10px; }
         .timer-part { background: var(--primary); color: white; }
@@ -40,34 +37,26 @@
         .progress-bar-container { width: 100%; height: 8px; background: var(--border); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar-fill { height: 100%; width: 0%; transition: width 0.6s ease, background-color 0.3s; }
 
-        /* 명언 카드 수정: 파란색 세로 줄 추가 */
+        /* 명언 카드 파란색 세로 줄 유지 */
         .quote-card { align-items: flex-start; padding-left: 20px; }
-        .quote-text { 
-            font-size: 1.1em; 
-            font-weight: 800; 
-            border-left: 4px solid var(--primary); /* 파란색 세로줄 */
-            padding-left: 15px; 
-            line-height: 1.5; 
-            cursor: pointer;
-            text-align: left;
-            word-break: keep-all;
-        }
+        .quote-text { font-size: 1.1em; font-weight: 800; border-left: 4px solid var(--primary); padding-left: 15px; line-height: 1.5; cursor: pointer; text-align: left; word-break: keep-all; }
 
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; }
         .vision-label { font-size: 1.3em; font-weight: 900; color: var(--primary); display: block; margin-bottom: 10px; }
         .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 95px; line-height: 1.6; font-size: 1.1em; }
 
+        /* 주차별 카드 디자인 */
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); }
+        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: border-color 0.4s ease; }
         .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 10px; border: 1px solid var(--border); }
         .star-icon { font-size: 1.4em; cursor: pointer; user-select: none; color: #ccc; transition: 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; }
         .star-icon.active { color: var(--gold); }
         .todo-checkbox { width: 1.2em; height: 1.2em; cursor: pointer; accent-color: var(--success); flex-shrink: 0; }
-        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; display: flex; align-items: center; }
+        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; }
 
         .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-        .dock-btn { padding: 8px 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.8em; transition: 0.2s; }
+        .dock-btn { padding: 8px 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.8em; }
         .btn-backup { background: var(--success); }
         .btn-restore { background: #5856d6; }
         .btn-pdf { background: #ff9500; }
@@ -200,11 +189,17 @@
             const done = w.todos.filter(t => t.done).length;
             const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
 
+            // 색상 결정 로직 복구
+            let weekColor = 'var(--border)';
+            if(per >= 100) weekColor = 'var(--success)';
+            else if(per >= 70) weekColor = 'var(--primary)';
+            else if(per >= 30) weekColor = '#ff9500';
+
             board.innerHTML += `
-                <div class="week-card">
+                <div class="week-card" style="border-color: ${weekColor}">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-weight:900; font-size:1.2em;">${wIdx + 1}주차</span>
-                        <span style="font-weight:900; font-size:1.4em; color:var(--primary);">${per}%</span>
+                        <span style="font-weight:900; font-size:1.4em; color: ${weekColor}; transition: color 0.3s;">${per}%</span>
                     </div>
                     <span style="font-size:0.85em; color:var(--quote-sub); font-weight:600;">${range}</span>
                     <div id="list-${wIdx}" style="margin-top:10px;">
@@ -238,7 +233,30 @@
     function refreshQuote() { const rq = quotes[Math.floor(Math.random() * quotes.length)]; document.getElementById('quote-display').innerText = `"${rq.q}"`; document.getElementById('quote-author').innerText = `- ${rq.a}`; }
     function toggleTimer() { if(isRunning) { clearInterval(timerInterval); document.getElementById('timer-btn').innerText = "START"; } else { timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if(timeLeft <= 0) { clearInterval(timerInterval); confetti(); alert("집중 시간 종료!"); timeLeft=1500; updateTimerDisplay(); isRunning=false; } }, 1000); document.getElementById('timer-btn').innerText = "STOP"; } isRunning = !isRunning; }
     function updateTimerDisplay() { const m = Math.floor(timeLeft / 60), s = timeLeft % 60; document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; }
-    function handleImage(idx) { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { data.images[idx] = r.result; save(); render(); }; r.readAsDataURL(e.target.files[0]); }; i.click(); }
+    function handleImage(idx) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = event => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 500;
+                    let w = img.width, h = img.height;
+                    if (w > MAX) { h *= MAX / w; w = MAX; }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    data.images[idx] = canvas.toDataURL('image/jpeg', 0.7);
+                    save(); render();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    }
     function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
     function exportData() { const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `12W_Elite_Backup.json`; a.click(); }
     function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { try { data = JSON.parse(r.result); save(); render(); } catch(e) { alert("잘못된 파일입니다."); } }; r.readAsText(e.target.files[0]); }; i.click(); }
