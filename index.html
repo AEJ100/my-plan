@@ -3,123 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Professional</title>
+    <title>12-Week Masterpiece: Compact</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg: #000000; --card: #1c1c1e; --text: #ffffff;
-            --primary: #007aff; --accent: #ff453a; --border: #2c2c2e;
-            --input-bg: #0a0a0a; --quote-sub: #8e8e93; --gold: #ffcc00;
+            --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
+            --primary: #0071e3; --success: #34c759; --accent: #ff3b30; --gold: #ffcc00;
+            --border: #d2d2d7; --quote-sub: #86868b; --input-bg: #f5f5f7;
+        }
+        [data-theme='dark'] {
+            --bg: #000000; --card: #1c1c1e; --text: #f5f5f7;
+            --primary: #0a84ff; --success: #30d158; --accent: #ff453a;
+            --border: #3a3a3c; --quote-sub: #a1a1a6; --input-bg: #0a0a0a;
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            margin: 0; padding: 20px; background-color: var(--bg); color: var(--text); 
-            padding-bottom: 140px; line-height: 1.5;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); 
+            padding-bottom: 120px; line-height: 1.4; transition: 0.3s;
         }
-        .container { max-width: 1200px; margin: auto; }
+        .container { max-width: 1000px; margin: auto; }
 
-        /* 1. 제목 수정 가능 스타일 */
+        /* 1. UI 크기 최적화 (Compact) */
         .main-title-input {
-            background: transparent; border: none; color: white;
-            font-size: 1.8em; font-weight: 800; width: 100%;
-            outline: none; margin-bottom: 20px; padding: 5px 0;
-            border-bottom: 1px solid transparent; transition: 0.3s;
+            background: transparent; border: none; color: var(--text);
+            font-size: 1.4em; font-weight: 800; width: 60%;
+            outline: none; margin: 0; padding: 5px 0; transition: 0.2s;
         }
-        .main-title-input:hover, .main-title-input:focus { border-bottom: 1px solid var(--primary); }
+        .main-title-input:focus { border-bottom: 2px solid var(--primary); }
 
-        /* 레이아웃 재배치 */
-        .dashboard { display: grid; grid-template-columns: 1fr 2.5fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 12px; margin-bottom: 15px; }
         
-        /* 2. D-Day 및 날짜 설정 하단 배치 */
-        .stat-card { background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; }
-        .dday-box { font-size: 4em; font-weight: 900; color: var(--accent); line-height: 1; }
-        .date-picker { background: #000; color: #fff; border: 1px solid var(--border); padding: 5px; border-radius: 8px; margin-top: 15px; width: 100%; font-size: 0.85em; cursor: pointer; }
-
-        /* 3. 명언 디데이 옆 배치 */
-        .quote-card { background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
-        .quote-text { font-size: 1.15em; font-weight: 600; color: #eee; margin-bottom: 10px; border-left: 4px solid var(--primary); padding-left: 15px; }
-
-        .timer-card { background: var(--primary); border-radius: 20px; padding: 20px; text-align: center; color: white; }
-        .timer-display { font-size: 2.8em; font-weight: 800; margin: 5px 0; }
-        .timer-btn { background: white; color: var(--primary); border: none; width: 100%; padding: 10px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-
-        /* 5. 비전 보드 & 고정 소제목 스타일 */
-        .vision-section { background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid var(--border); margin-bottom: 25px; }
-        .vision-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
-        .vision-item { aspect-ratio: 1/1; background: var(--input-bg); border: 1px dashed var(--border); border-radius: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; font-size: 2em; }
+        .stat-card, .quote-card, .timer-card { 
+            background: var(--card); border-radius: 16px; padding: 15px; 
+            border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center;
+        }
         
-        .goal-group { margin-bottom: 15px; }
-        .goal-label { font-weight: bold; margin-bottom: 8px; display: block; color: var(--primary); }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: white; padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 60px; line-height: 1.6; }
+        /* 2. D-Day 및 시작일 문구 */
+        .dday-box { font-size: 2.8em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; }
+        .date-picker-group { margin-top: 10px; font-size: 0.8em; display: flex; align-items: center; gap: 5px; justify-content: center; }
+        .date-picker { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 3px; border-radius: 6px; cursor: pointer; }
 
-        /* 4. 차트 및 성공률 */
-        .chart-card { background: var(--card); border-radius: 24px; padding: 25px; border: 1px solid var(--border); margin-bottom: 30px; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .final-success-rate { font-size: 1.4em; font-weight: 900; color: var(--primary); }
+        .quote-text { font-size: 0.95em; font-weight: 600; border-left: 3px solid var(--primary); padding-left: 12px; }
+        .timer-card { background: var(--primary); color: white; text-align: center; border: none; }
+        .timer-display { font-size: 1.8em; font-weight: 800; margin: 2px 0; }
+        .timer-btn { background: white; color: var(--primary); border: none; width: 100%; padding: 6px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.8em; }
 
-        /* 주간 카드 및 투두 */
-        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
-        .week-card { background: var(--card); border-radius: 24px; padding: 25px; border: 1px solid var(--border); position: relative; }
+        /* 4. 비전보드 접이식 (Details/Summary) */
+        .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
+        .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        .vision-section summary::after { content: '▼'; font-size: 0.7em; }
+        .vision-section[open] summary::after { content: '▲'; }
+        
+        .vision-content { padding: 15px; }
+        .vision-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .vision-item { aspect-ratio: 1/1; background: var(--input-bg); border: 1px dashed var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.5em; overflow: hidden; }
+        
+        .goal-group { margin-bottom: 10px; }
+        .goal-label { font-weight: bold; margin-bottom: 4px; display: block; color: var(--primary); font-size: 0.85em; }
+        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 10px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 50px; font-size: 0.9em; }
+
+        .chart-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .final-success-rate { font-size: 1.1em; font-weight: 900; color: var(--primary); }
+
+        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .week-card { background: var(--card); border-radius: 18px; padding: 15px; border: 1px solid var(--border); position: relative; }
         .week-card.active { border: 2px solid var(--primary); }
-        .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 12px; border-radius: 15px; margin-bottom: 10px; gap: 12px; }
-        .star-box { background: #fff; color: #000; border-radius: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 8px; gap: 8px; border: 1px solid var(--border); }
+        .star-box { background: #fff; color: #000; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 1em; }
         .star-box.active { background: var(--gold); }
-        .todo-input { flex: 1; border: none; background: transparent; color: white; font-size: 16px; outline: none; }
+        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; }
 
-        .save-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; background: rgba(28,28,30,0.8); backdrop-filter: blur(20px); padding: 15px 25px; border-radius: 100px; border: 1px solid var(--border); z-index: 2000; }
-        .dock-btn { padding: 12px 22px; border-radius: 15px; font-weight: 800; border: none; cursor: pointer; color: white; }
+        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .dock-btn { padding: 8px 16px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.85em; }
+
+        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } .main-title-input { width: 100%; } }
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
 <div class="container">
-    <input type="text" id="master-title" class="main-title-input" onchange="data.title=this.value; save();" value="🏆 12-Week Masterpiece">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <input type="text" id="master-title" class="main-title-input" onchange="data.title=this.value; save();">
+        <button onclick="toggleTheme()" style="background:var(--card); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.8em;">🌓 테마 전환</button>
+    </div>
 
     <div class="dashboard">
         <div class="stat-card">
             <div id="dday-display" class="dday-box">D-84</div>
-            <div style="font-weight:bold; margin-top:5px;">전체 달성률 <span id="total-per-text">0%</span></div>
-            <input type="date" id="start-date" class="date-picker" onchange="updateStartDate(this.value)">
+            <div style="font-weight:bold; font-size:0.8em; text-align:center; margin-top:5px;">달성률 <span id="total-per-text">0%</span></div>
+            <div class="date-picker-group">
+                <span>시작일:</span>
+                <input type="date" id="start-date" class="date-picker" onchange="updateStartDate(this.value)">
+            </div>
         </div>
 
         <div class="quote-card">
             <div id="quote-display" class="quote-text">"..."</div>
-            <div id="quote-author" style="color:var(--quote-sub); font-size:0.9em; margin-left:15px;"></div>
+            <div id="quote-author" style="color:var(--quote-sub); font-size:0.8em; margin-top:5px; margin-left:12px;"></div>
         </div>
 
         <div class="timer-card">
-            <div style="font-size:0.8em; font-weight:800; opacity:0.8;">FOCUS TIMER</div>
+            <div style="font-size:0.7em; font-weight:800; opacity:0.8;">FOCUS</div>
             <div id="timer" class="timer-display">25:00</div>
             <button onclick="toggleTimer()" id="timer-btn" class="timer-btn">START</button>
         </div>
     </div>
 
-    <div class="vision-section">
-        <h3 style="margin-top:0; margin-bottom:20px;">🖼️ 비전 보드 & 핵심 목표 설정</h3>
-        <div class="vision-grid" id="vision-gallery"></div>
-        
-        <div class="goal-group">
-            <span class="goal-label">✨ 원대한 목표 (장기비전)</span>
-            <textarea id="goal-long" class="goal-textarea" onchange="data.goals.long=this.value; save();" placeholder="엔터를 눌러 여러 줄로 작성하세요"></textarea>
+    <details class="vision-section" open>
+        <summary>🖼️ 비전 보드 & 핵심 목표 설정</summary>
+        <div class="vision-content">
+            <div class="vision-grid" id="vision-gallery"></div>
+            <div class="goal-group">
+                <span class="goal-label">✨ 원대한 목표 (장기비전)</span>
+                <textarea id="goal-long" class="goal-textarea" onchange="data.goals.long=this.value; save();" placeholder="내용을 입력하세요..."></textarea>
+            </div>
+            <div class="goal-group">
+                <span class="goal-label">🎯 3년 목표</span>
+                <textarea id="goal-three" class="goal-textarea" onchange="data.goals.three=this.value; save();" placeholder="내용을 입력하세요..."></textarea>
+            </div>
+            <div class="goal-group">
+                <span class="goal-label">🚀 12주 핵심 계획</span>
+                <textarea id="goal-twelve" class="goal-textarea" onchange="data.goals.twelve=this.value; save();" placeholder="내용을 입력하세요..."></textarea>
+            </div>
         </div>
-        <div class="goal-group">
-            <span class="goal-label">🎯 3년 목표</span>
-            <textarea id="goal-three" class="goal-textarea" onchange="data.goals.three=this.value; save();" placeholder="엔터를 눌러 여러 줄로 작성하세요"></textarea>
-        </div>
-        <div class="goal-group">
-            <span class="goal-label">🚀 12주 핵심 계획</span>
-            <textarea id="goal-twelve" class="goal-textarea" onchange="data.goals.twelve=this.value; save();" placeholder="엔터를 눌러 여러 줄로 작성하세요"></textarea>
-        </div>
-    </div>
+    </details>
 
     <div class="chart-card">
-        <div class="chart-header">
-            <h3 style="margin:0;">📊 주간 성공 흐름</h3>
-            <div class="final-success-rate">최종 성공률: <span id="final-rate">0%</span></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h4 style="margin:0;">📊 주간 성공 흐름</h4>
+            <div class="final-success-rate">성공률: <span id="final-rate">0%</span></div>
         </div>
-        <div style="height:200px;"><canvas id="weeklyChart"></canvas></div>
+        <div style="height:150px;"><canvas id="weeklyChart"></canvas></div>
     </div>
 
     <div class="week-grid" id="board"></div>
@@ -128,29 +144,25 @@
 <div class="save-dock">
     <button class="dock-btn" style="background:#34c759;" onclick="manualSave()">💾 저장</button>
     <button class="dock-btn" style="background:#007aff;" onclick="exportData()">📤 백업</button>
-    <button class="dock-btn" style="background:#5856d6;" onclick="importData()">📥 불러오기</button>
+    <button class="dock-btn" style="background:#5856d6;" onclick="importData()">📥 복원</button>
     <button class="dock-btn" style="background:#8e8e93;" onclick="resetAll()">🧹 초기화</button>
 </div>
 
 <script>
-    // 명언 100개 데이터베이스
     const quotes = [
-        { q: "시련은 있어도 실패는 없다.", a: "정주영 (현대)" },
+        { q: "시련은 있어도 실패는 없다.", a: "정주영" },
         { q: "가장 큰 위험은 아무것도 감수하지 않는 것이다.", a: "마크 저커버그" },
         { q: "혁신은 리더와 추종자를 구분하는 잣대다.", a: "스티브 잡스" },
         { q: "작은 일에 충실한 사람이 큰 일에도 충실할 수 있다.", a: "성경" },
-        { q: "시작하기 위해 위대해질 필요는 없지만, 위대해지기 위해 시작해야 한다.", a: "지그 지글러" },
-        { q: "어제와 똑같이 살면서 다른 미래를 기대하는 것은 정신병이다.", a: "알베르트 아인슈타인" },
-        { q: "측정할 수 없으면 관리할 수 없다.", a: "피터 드러커" },
-        { q: "오늘 그늘에 앉아 쉴 수 있는 이유는 오래전 누군가 나무를 심었기 때문이다.", a: "워런 버핏" },
-        { q: "성공은 최종적인 것이 아니며 실패는 치명적인 것이 아니다.", a: "윈스턴 처칠" },
-        { q: "할 수 있다고 믿는 사람은 결국 해낸다.", a: "정주영 (현대)" }
-        // ... 실제 100개 데이터가 여기에 들어갑니다 (지면상 축약)
+        { q: "미래를 예측하는 가장 좋은 방법은 미래를 창조하는 것이다.", a: "피터 드러커" },
+        { q: "할 수 있다고 믿는 사람은 결국 해낸다.", a: "정주영" },
+        { q: "실패는 다시 시작할 수 있는 기회일 뿐이다.", a: "헨리 포드" },
+        { q: "운은 준비가 기회를 만났을 때 일어난다.", a: "세네카" }
     ];
 
-    const STORAGE_KEY = '12W_MASTER_PRO_V1';
+    const STORAGE_KEY = '12W_MASTER_COMPACT_V1';
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-        title: "🏆 12-Week Masterpiece",
+        theme: 'dark', title: "🏆 12-Week Masterpiece",
         startDate: new Date().toISOString().split('T')[0],
         goals: { long: "", three: "", twelve: "" },
         images: [null, null, null],
@@ -160,9 +172,10 @@
     let timerInterval, timeLeft = 1500, isRunning = false, myChart;
 
     function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateChart(); calculateTotalPercent(); }
-    function manualSave() { save(); confetti(); alert("저장되었습니다!"); }
+    function manualSave() { save(); confetti(); alert("저장 완료!"); }
 
     function render() {
+        document.body.setAttribute('data-theme', data.theme);
         document.getElementById('master-title').value = data.title;
         document.getElementById('start-date').value = data.startDate;
         document.getElementById('goal-long').value = data.goals.long || "";
@@ -196,48 +209,42 @@
 
             board.innerHTML += `
                 <div class="week-card ${isCurrent ? 'active' : ''}">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <span style="font-weight:bold; font-size:1.2em;">${w.title}</span>
-                        <span style="color:var(--primary); font-weight:900;">${per}%</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-weight:bold; font-size:1em;">${w.title}</span>
+                        <span style="color:var(--primary); font-weight:800; font-size:0.9em;">${per}%</span>
                     </div>
                     <div id="list-${wIdx}">
                         ${w.todos.map((t, tIdx) => `
                             <div class="todo-item">
                                 <div class="star-box ${t.important?'active':''}" onclick="toggleStar(${wIdx}, ${tIdx})">★</div>
-                                <input type="checkbox" style="width:20px; height:20px; accent-color:var(--primary);" ${t.done?'checked':''} onclick="toggleTodo(${wIdx}, ${tIdx})">
+                                <input type="checkbox" style="width:18px; height:18px;" ${t.done?'checked':''} onclick="toggleTodo(${wIdx}, ${tIdx})">
                                 <input type="text" class="todo-input" value="${t.text}" onchange="editTodoText(${wIdx}, ${tIdx}, this.value)" style="${t.done?'text-decoration:line-through;opacity:0.4':''}">
                                 <button onclick="deleteTodo(${wIdx}, ${tIdx})" style="background:none; border:none; color:var(--accent); cursor:pointer;">×</button>
                             </div>
                         `).join('')}
                     </div>
-                    <div style="display:flex; gap:8px; margin-top:10px;">
-                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가..." onkeypress="if(event.key==='Enter') addTodo(${wIdx})" style="flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white;">
-                        <button onclick="addTodo(${wIdx})" style="background:var(--primary); color:white; border:none; border-radius:10px; width:40px; cursor:pointer;">+</button>
+                    <div style="display:flex; gap:5px; margin-top:8px;">
+                        <input type="text" id="in-${wIdx}" placeholder="할 일..." onkeypress="if(event.key==='Enter') addTodo(${wIdx})" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.9em;">
+                        <button onclick="addTodo(${wIdx})" style="background:var(--primary); color:white; border:none; border-radius:8px; width:35px; cursor:pointer;">+</button>
                     </div>
                 </div>`;
         });
         updateChart(); calculateTotalPercent(); updateDDay();
     }
 
-    // 4. 성공률 계산 로직 고도화
     function calculateTotalPercent() {
-        let totalTodos = 0, doneTodos = 0;
-        data.weeks.forEach(w => {
-            totalTodos += w.todos.length;
-            doneTodos += w.todos.filter(t => t.done).length;
-        });
-        const rate = totalTodos === 0 ? 0 : Math.round((doneTodos / totalTodos) * 100);
+        let total = 0, done = 0;
+        data.weeks.forEach(w => { total += w.todos.length; done += w.todos.filter(t => t.done).length; });
+        const rate = total === 0 ? 0 : Math.round((done / total) * 100);
         document.getElementById('total-per-text').innerText = `${rate}%`;
         document.getElementById('final-rate').innerText = `${rate}%`;
     }
 
+    function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
     function toggleStar(wIdx, tIdx) {
         const item = data.weeks[wIdx].todos[tIdx];
         item.important = !item.important;
-        if(item.important) {
-            data.weeks[wIdx].todos.splice(tIdx, 1);
-            data.weeks[wIdx].todos.unshift(item);
-        }
+        if(item.important) { data.weeks[wIdx].todos.splice(tIdx, 1); data.weeks[wIdx].todos.unshift(item); }
         save(); render();
     }
     function addTodo(wIdx) { const v = document.getElementById(`in-${wIdx}`); if(v.value){ data.weeks[wIdx].todos.push({text:v.value, done:false, important:false}); v.value=''; save(); render(); } }
@@ -260,9 +267,9 @@
             type: 'line',
             data: {
                 labels: data.weeks.map(w => w.title),
-                datasets: [{ data: scores, borderColor: '#007aff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,122,255,0.1)', pointRadius: 5 }]
+                datasets: [{ data: scores, borderColor: '#007aff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,113,227,0.1)', pointRadius: 3 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100, ticks: { color: '#888' }, grid: { color: '#2c2c2e' } }, x: { ticks: { color: '#888' }, grid: { display: false } } }, plugins: { legend: { display: false } } }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100, ticks: { display: false }, grid: { color: '#2c2c2e' } }, x: { ticks: { color: '#888', font: { size: 9 } }, grid: { display: false } } }, plugins: { legend: { display: false } } }
         });
     }
 
