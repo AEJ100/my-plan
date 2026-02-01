@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Time Machine V17.0</title>
+    <title>12-Week Masterpiece: Mobile Friendly V17.5</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -20,55 +20,51 @@
             --border: #3a3a3c; --quote-sub: #a1a1a6; --input-bg: #0a0a0a;
         }
 
-        body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; }
+        body { font-family: -apple-system, sans-serif; margin: 0; padding: 12px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; -webkit-tap-highlight-color: transparent; }
         .container { max-width: 1000px; margin: auto; }
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 45%; outline: none; }
-        .auth-btn { padding: 8px 15px; border-radius: 12px; border: none; cursor: pointer; font-weight: 800; font-size: 0.8em; }
         
-        .dashboard { display: grid; grid-template-columns: 1fr 1.8fr 1.5fr; gap: 12px; margin-bottom: 15px; }
-        .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); transition: 0.3s; }
-        .dday-box { font-size: 3em; font-weight: 900; color: var(--accent); text-align: center; }
-        .mini-display { font-size: 1.8em; font-weight: 900; margin: 4px 0; }
+        /* 모바일 헤더 */
+        .header-flex { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        @media (min-width: 600px) { .header-flex { flex-direction: row; justify-content: space-between; align-items: center; } }
         
-        .dual-card { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .timer-part { background: var(--primary); color: white; border-radius: 12px; padding: 10px; text-align: center; }
-        .progress-part { background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; }
-        .progress-bar-container { width: 100%; height: 8px; background: var(--border); border-radius: 10px; margin-top: 8px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; width: 0%; transition: 0.6s ease; }
-        
-        /* 공통 카드 스타일 (주차 및 기수 블럭) */
-        .block-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .block-card { background: var(--card); border-radius: 18px; padding: 25px; border: 3px solid var(--border); transition: 0.3s; cursor: pointer; text-align: center; }
-        .block-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .block-card h3 { margin: 0; font-size: 1.3em; font-weight: 900; }
-        .block-date { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
+        .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.8em; font-weight: 900; width: 100%; outline: none; }
+        .auth-btn { padding: 10px 18px; border-radius: 14px; border: none; cursor: pointer; font-weight: 800; font-size: 0.9em; width: 100%; }
+        @media (min-width: 600px) { .auth-btn { width: auto; } }
 
-        /* 모달 시스템 */
+        /* 대시보드 그리드 최적화 */
+        .dashboard { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
+        @media (min-width: 600px) { .dashboard { grid-template-columns: 1fr 1.5fr 1.2fr; } }
+        
+        .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); }
+        .dday-box { font-size: 3.5em; font-weight: 900; color: var(--accent); text-align: center; line-height: 1; }
+        .mini-display { font-size: 2em; font-weight: 900; margin: 4px 0; }
+        
+        /* 주차 & 기수 블럭 (모바일에서 2줄, 태블릿 이상 4줄) */
+        .block-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        @media (min-width: 600px) { .block-grid { grid-template-columns: repeat(4, 1fr); } }
+        
+        .block-card { background: var(--card); border-radius: 22px; padding: 20px 10px; border: 3px solid var(--border); transition: 0.2s; cursor: pointer; text-align: center; }
+        .block-card h3 { margin: 0; font-size: 1.1em; font-weight: 900; }
+        .block-date { font-size: 0.7em; opacity: 0.7; margin-bottom: 5px; display: block; font-weight: bold; }
+
+        /* 모달 팝업 가득 차게 */
         .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); }
-        .modal-content { background: var(--card); margin: 3vh auto; padding: 20px; border-radius: 24px; width: 95%; max-width: 600px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: var(--card); margin: 2vh auto; padding: 20px; border-radius: 28px; width: 92%; max-width: 600px; border: 1px solid var(--border); max-height: 94vh; overflow-y: auto; }
         
-        .day-section { margin-bottom: 10px; background: var(--input-bg); border-radius: 15px; border: 1px solid var(--border); overflow: hidden; }
-        .day-header { padding: 12px 15px; font-weight: 900; color: var(--primary); font-size: 1.1em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--card); }
-        .day-content { padding: 10px; display: none; }
-        .day-content.active { display: block; }
+        .day-section { margin-bottom: 12px; background: var(--input-bg); border-radius: 18px; border: 1px solid var(--border); overflow: hidden; }
+        .day-header { padding: 15px; font-weight: 900; color: var(--primary); font-size: 1.2em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--card); }
         
-        .todo-item { display: flex; align-items: center; background: var(--card); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; gap: 8px; border: 1px solid var(--border); }
-        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-size: 0.9em; }
-        .star-icon { cursor: pointer; color: #ccc; } .star-icon.active { color: var(--gold); }
-        .todo-check { width: 18px; height: 18px; cursor: pointer; accent-color: var(--success); }
+        /* 터치하기 편한 투두 아이템 */
+        .todo-item { display: flex; align-items: center; background: var(--card); padding: 12px; border-radius: 14px; margin-bottom: 8px; gap: 10px; border: 1px solid var(--border); }
+        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-size: 1em; }
+        .todo-check { width: 22px; height: 22px; cursor: pointer; accent-color: var(--success); }
 
-        .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
-        .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 12px; box-sizing: border-box; resize: vertical; min-height: 60px; font-size: 0.95em; margin-bottom: 10px; }
+        .vision-section summary { padding: 15px; cursor: pointer; font-weight: bold; background: var(--border); font-size: 1.1em; }
+        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 16px; color: var(--text); padding: 15px; font-size: 1em; margin-bottom: 12px; }
 
-        .pending-tag { font-size: 0.95em; font-weight: 900; color: var(--primary); width: 85px; display: inline-block; background: var(--border); padding: 2px 6px; border-radius: 6px; text-align: center; margin-right: 10px; }
-
-        .finish-season-btn { background: var(--gold); color: black; border: none; padding: 10px 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; width: 100%; }
-
-        .dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 4000; }
-        .dock-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; }
-        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 6000; }
+        /* 하단 도구함 더 크게 */
+        .dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; background: var(--card); padding: 12px 25px; border-radius: 50px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 4000; }
+        .dock-btn { font-size: 1.5em; cursor: pointer; background: none; border: none; }
     </style>
 </head>
 <body data-theme="dark">
@@ -77,23 +73,23 @@
 
 <div id="planner-modal" class="modal">
     <div class="modal-content">
-        <h2 id="modal-title" style="margin-top:0; color:var(--primary); text-align: center;">기수 정보</h2>
+        <h2 id="modal-title" style="margin-top:0; color:var(--primary); text-align: center; font-size: 1.5em;">기수 정보</h2>
         <div id="planner-container"></div>
-        <button style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-weight:900; cursor:pointer; margin-top:10px;" onclick="closeModal()">닫기</button>
+        <button style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:18px; font-weight:900; cursor:pointer; margin-top:15px; font-size: 1.1em;" onclick="closeModal()">창 닫기</button>
     </div>
 </div>
 
 <div class="container">
     <div class="header-flex">
         <div>
-            <span id="season-display" style="font-weight:bold; color:var(--primary); font-size:0.9em; display:block;">제 1기 진행 중</span>
+            <span id="season-display" style="font-weight:bold; color:var(--primary); font-size:1em; display:block;">제 1기 진행 중</span>
             <input type="text" id="master-title" class="main-title-input" oninput="autoSaveField('title', this.value)">
         </div>
         <div id="auth-zone">
-            <button id="btn-login" class="auth-btn" style="background:var(--primary); color:white;" onclick="googleLogin()">🔑 로그인</button>
+            <button id="btn-login" class="auth-btn" style="background:var(--primary); color:white;" onclick="googleLogin()">🔑 구글 로그인</button>
             <div id="user-info" style="display:none; text-align:right;">
-                <span id="user-name" style="font-size:0.8em; font-weight:bold; display:block;"></span>
-                <button onclick="googleLogout()" style="color:var(--accent); background:none; border:none; font-size:0.6em; cursor:pointer;">로그아웃</button>
+                <span id="user-name" style="font-size:1em; font-weight:bold; display:block; margin-bottom:5px;"></span>
+                <button onclick="googleLogout()" style="color:var(--accent); background:none; border:none; font-size:0.8em; cursor:pointer; font-weight:bold;">로그아웃</button>
             </div>
         </div>
     </div>
@@ -101,38 +97,38 @@
     <div class="dashboard">
         <div class="stat-card">
             <div id="dday-display" class="dday-box">D-84</div>
-            <div style="text-align:center; margin-top:10px;"><input type="date" id="start-date" style="border:none; background:transparent; color:var(--text); font-weight:bold; width: 120px;" onchange="data.startDate=this.value; save(); render();"></div>
+            <div style="text-align:center; margin-top:10px;"><input type="date" id="start-date" style="border:none; background:transparent; color:var(--text); font-weight:bold; font-size:1.1em; width: 140px;" onchange="data.startDate=this.value; save(); render();"></div>
         </div>
         <div class="quote-card" onclick="refreshQuote()">
-            <div id="quote-display" style="font-weight:800; border-left:4px solid var(--primary); padding-left:15px;"></div>
-            <div id="quote-author" style="color:var(--quote-sub); font-size:0.8em; margin-top:8px; margin-left:19px;"></div>
+            <div id="quote-display" style="font-weight:800; border-left:5px solid var(--primary); padding-left:15px; font-size: 1.1em; line-height: 1.4;"></div>
+            <div id="quote-author" style="color:var(--quote-sub); font-size:0.9em; margin-top:10px; margin-left:20px;"></div>
         </div>
         <div class="dual-card">
-            <div class="timer-part">
-                <div style="font-size:0.7em; font-weight:800;">집중 타이머</div>
-                <div id="timer" class="mini-display">25:00</div>
-                <button onclick="toggleTimer()" id="timer-btn" style="background:white; color:var(--primary); border:none; border-radius:5px; font-size:0.6em; cursor:pointer; font-weight:bold; padding:3px 8px;">START</button>
-            </div>
-            <div class="progress-part">
-                <div style="font-size:0.7em; font-weight:800; color:var(--quote-sub)">전체 성공률</div>
-                <div id="total-per-text" class="mini-display">0%</div>
-                <div class="progress-bar-container"><div id="main-progress-bar" class="progress-bar-fill"></div></div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="timer-part">
+                    <div style="font-size:0.8em; font-weight:800;">집중 타이머</div>
+                    <div id="timer" class="mini-display">25:00</div>
+                    <button onclick="toggleTimer()" id="timer-btn" style="background:white; color:var(--primary); border:none; border-radius:8px; font-size:0.7em; cursor:pointer; font-weight:bold; padding:5px 12px;">START</button>
+                </div>
+                <div class="progress-part">
+                    <div style="font-size:0.8em; font-weight:800; color:var(--quote-sub)">전체 성공률</div>
+                    <div id="total-per-text" class="mini-display">0%</div>
+                    <div class="progress-bar-container"><div id="main-progress-bar" class="progress-bar-fill"></div></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <button class="finish-season-btn" onclick="archiveSeason()">🏆 이번 기수 마감 및 제 다음 기수 시작</button>
+    <button class="auth-btn" style="background:var(--gold); color:black; margin-bottom:20px; font-size:1.1em; padding:15px;" onclick="archiveSeason()">🏆 이번 기수 마감 & 다음 기수 시작</button>
 
     <details class="vision-section" open>
         <summary>🖼️ 비전 보드 & 핵심 목표</summary>
-        <div style="padding: 20px;">
+        <div style="padding: 15px;">
             <div id="vision-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;"></div>
-            <span style="font-weight:900; color:var(--primary); display:block; margin:15px 0 5px;">✨ 원대한 장기목표</span>
-            <textarea id="goal-long" class="goal-textarea" oninput="autoSaveGoal('long', this.value)"></textarea>
-            <span style="font-weight:900; color:var(--primary); display:block; margin:5px 0 5px;">🎯 3년 중기목표</span>
-            <textarea id="goal-three" class="goal-textarea" oninput="autoSaveGoal('three', this.value)"></textarea>
-            <span style="font-weight:900; color:var(--primary); display:block; margin:5px 0 5px;">🚀 12주 목표</span>
-            <textarea id="goal-twelve" class="goal-textarea" oninput="autoSaveGoal('twelve', this.value)"></textarea>
+            <span style="font-weight:900; color:var(--primary); display:block; margin:20px 0 8px; font-size:1.1em;">✨ 원대한 장기목표</span>
+            <textarea id="goal-long" class="goal-textarea" placeholder="나의 최종 꿈을 적어보세요!" oninput="autoSaveGoal('long', this.value)"></textarea>
+            <span style="font-weight:900; color:var(--primary); display:block; margin:5px 0 8px; font-size:1.1em;">🚀 12주 목표</span>
+            <textarea id="goal-twelve" class="goal-textarea" placeholder="이번 12주 동안 꼭 이룰 것은?" oninput="autoSaveGoal('twelve', this.value)"></textarea>
         </div>
     </details>
 
@@ -140,19 +136,18 @@
 
     <details class="vision-section" id="pending-section" open>
         <summary>📌 미완료 리스트 모아보기</summary>
-        <div id="pending-container" style="padding: 20px;"></div>
+        <div id="pending-container" style="padding: 15px;"></div>
     </details>
 
     <details class="vision-section" open>
         <summary>📜 지나간 기수 기록 (보관함)</summary>
-        <div id="history-grid" class="block-grid" style="padding: 20px;">
-            </div>
+        <div id="history-grid" class="block-grid" style="padding: 15px;"></div>
     </details>
 </div>
 
 <div class="dock">
-    <button class="dock-btn" onclick="toggleTheme()" title="밝기 조절">🌓</button>
-    <button class="dock-btn" onclick="resetAll()" title="데이터 초기화" style="color:var(--accent);">🧹</button>
+    <button class="dock-btn" onclick="toggleTheme()">🌓</button>
+    <button class="dock-btn" onclick="resetAll()" style="color:var(--accent);">🧹</button>
 </div>
 
 <script>
@@ -161,9 +156,9 @@
     const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V17')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V17_5')) || { 
         theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
-        goals:{long:"", three:"", twelve:""}, images:[null,null,null], 
+        goals:{long:"", twelve:""}, images:[null,null,null], 
         currentSeason: 1, history: [],
         weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
     };
@@ -175,7 +170,7 @@
     auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; loadFromCloud(user.uid); } });
 
     function save() { 
-        localStorage.setItem('12W_V17', JSON.stringify(data)); 
+        localStorage.setItem('12W_V17_5', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) db.collection("users").doc(user.uid).set(data).then(() => { 
             const s=document.getElementById('save-status'); s.style.opacity='1'; setTimeout(()=>s.style.opacity='0',800); 
@@ -193,15 +188,8 @@
     }
 
     function archiveSeason() {
-        if(!confirm(`제 ${data.currentSeason}기를 마감하고 보관함에 저장할까요?`)) return;
-        const record = {
-            season: data.currentSeason,
-            title: data.title,
-            startDate: data.startDate,
-            goals: JSON.parse(JSON.stringify(data.goals)),
-            images: JSON.parse(JSON.stringify(data.images)),
-            weeks: JSON.parse(JSON.stringify(data.weeks))
-        };
+        if(!confirm(`제 ${data.currentSeason}기를 마감할까요? 기록은 보관함에 저장됩니다.`)) return;
+        const record = { season: data.currentSeason, title: data.title, startDate: data.startDate, goals: JSON.parse(JSON.stringify(data.goals)), images: JSON.parse(JSON.stringify(data.images)), weeks: JSON.parse(JSON.stringify(data.weeks)) };
         data.history.unshift(record);
         data.currentSeason += 1;
         data.startDate = new Date().toISOString().split('T')[0];
@@ -210,12 +198,11 @@
         save();
     }
 
-    // 현재 기수 계획 모달 열기
     function openModal(wIdx) { currentW = wIdx; renderPlanner(wIdx); document.getElementById('planner-modal').style.display = "block"; }
 
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
-        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 요일별 계획 (${getWeekRangeText(data.startDate, wIdx)})`;
+        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 상세 (${getWeekRangeText(data.startDate, wIdx)})`;
         container.innerHTML = dayNames.map((day, dIdx) => {
             const dayData = data.weeks[wIdx].days[dIdx];
             dayData.todos.sort((a,b) => (a.important === b.important ? 0 : a.important ? -1 : 1));
@@ -229,55 +216,26 @@
                                 <span class="star-icon ${t.important?'active':''}" onclick="toggleStar(${wIdx},${dIdx},${tIdx})">★</span>
                                 <input type="checkbox" class="todo-check" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})">
                                 <input type="text" class="todo-input" value="${t.text}" oninput="editTodo(${wIdx},${dIdx},${tIdx},this.value)" style="${t.done?'text-decoration:line-through':''}">
-                                <button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent); cursor:pointer;">×</button>
+                                <button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent); font-size:1.5em;">×</button>
                             </div>`).join('')}</div>
-                        <input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 추가" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); box-sizing:border-box;">
+                        <input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 추가" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:15px; border-radius:14px; border:1px solid var(--border); background:var(--card); color:var(--text); box-sizing:border-box; font-size:1em;">
                     </div>
                 </div>`;
         }).join('');
     }
 
-    // 보관함 기수 상세보기 모달
     function viewHistory(hIdx) {
         const h = data.history[hIdx];
         const container = document.getElementById('planner-container');
-        document.getElementById('modal-title').innerText = `제 ${h.season}기 기록: ${h.title}`;
-        
-        let total = 0, done = 0;
-        h.weeks.forEach(w => w.days.forEach(d => { total += d.todos.length; done += d.todos.filter(t => t.done).length; }));
-        const per = total === 0 ? 0 : Math.round((done/total)*100);
-
+        document.getElementById('modal-title').innerText = `제 ${h.season}기 (${h.startDate})`;
         container.innerHTML = `
-            <div style="text-align:center; margin-bottom:20px; background:var(--input-bg); padding:15px; border-radius:15px;">
-                <div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div>
-                <div style="font-size:0.8em; opacity:0.7;">${h.startDate} 시작</div>
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; margin-bottom:15px;">
-                ${h.images.map(img => `<div style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}
-            </div>
-            <div style="margin-bottom:15px; font-size:0.9em;">
-                <strong>장기목표:</strong> ${h.goals.long || '없음'}<br>
-                <strong>12주목표:</strong> ${h.goals.twelve || '없음'}
-            </div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:15px;">${h.images.map(img => `<div style="aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:var(--input-bg);">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}</div>
+            <div style="margin-bottom:20px; font-size:1em; padding:15px; background:var(--input-bg); border-radius:15px;"><strong>목표:</strong> ${h.goals.long || '없음'}</div>
             ${h.weeks.map((w, wIdx) => {
                 const wTasks = w.days.flatMap((d, dIdx) => d.todos.map(t => ({...t, day: dayNames[dIdx]})));
                 if(wTasks.length === 0) return '';
-                return `
-                    <div class="day-section">
-                        <div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')">
-                            <span>${w.title} 기록</span><span>▼</span>
-                        </div>
-                        <div class="day-content">
-                            ${wTasks.map(t => `
-                                <div class="todo-item" style="opacity:0.7;">
-                                    <span style="font-size:0.7em; font-weight:bold; color:var(--primary); min-width:30px;">${t.day[0]}</span>
-                                    <span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span>
-                                    <span>${t.done?'✅':'❌'}</span>
-                                </div>`).join('')}
-                        </div>
-                    </div>`;
-            }).join('')}
-        `;
+                return `<div class="day-section"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>${w.title}</span><span>▼</span></div><div class="day-content">${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-weight:bold; color:var(--primary);">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}</div></div>`;
+            }).join('')}`;
         document.getElementById('planner-modal').style.display = "block";
     }
 
@@ -286,11 +244,7 @@
 
     function addTodo(wIdx, dIdx) {
         const v = document.getElementById(`in-${wIdx}-${dIdx}`);
-        if(v.value.trim()){
-            data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false, important: false});
-            v.value = ''; renderPlanner(wIdx);
-            setTimeout(() => document.getElementById(`in-${wIdx}-${dIdx}`).focus(), 10);
-        }
+        if(v.value.trim()){ data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false, important: false}); v.value = ''; renderPlanner(wIdx); setTimeout(() => document.getElementById(`in-${wIdx}-${dIdx}`).focus(), 10); }
     }
     function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); if(currentW !== null) renderPlanner(wIdx); save(); }
     function toggleStar(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].important = !data.weeks[wIdx].days[dIdx].todos[tIdx].important; renderPlanner(wIdx); save(); }
@@ -303,12 +257,9 @@
         document.getElementById('start-date').value = data.startDate;
         document.getElementById('season-display').innerText = `제 ${data.currentSeason}기 진행 중`;
         document.getElementById('goal-long').value = data.goals.long || "";
-        document.getElementById('goal-three').value = data.goals.three || "";
         document.getElementById('goal-twelve').value = data.goals.twelve || "";
-        
         const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
-        data.images.forEach((img, i) => { const div = document.createElement('div'); div.style = "aspect-ratio:1/1; background:var(--input-bg); border:1px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden;"; div.onclick = () => handleImage(i); div.innerHTML = img ? `<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : '+'; gallery.appendChild(div); });
-        
+        data.images.forEach((img, i) => { const div = document.createElement('div'); div.style = "aspect-ratio:1/1; background:var(--input-bg); border:1px dashed var(--border); border-radius:18px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden;"; div.onclick = () => handleImage(i); div.innerHTML = img ? `<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="font-size:2em; opacity:0.3;">+</span>'; gallery.appendChild(div); });
         const board = document.getElementById('board'); board.innerHTML = '';
         let totalAll = 0, doneAll = 0;
         data.weeks.forEach((w, wIdx) => {
@@ -316,47 +267,31 @@
             w.days.forEach(d => { weekTotal += d.todos.length; weekDone += d.todos.filter(t => t.done).length; });
             const per = weekTotal === 0 ? 0 : Math.round((weekDone / weekTotal) * 100);
             totalAll += weekTotal; doneAll += weekDone;
-            board.innerHTML += `<div class="block-card" style="border-color:${getStatusColor(per)}" onclick="openModal(${wIdx})"><span class="block-date">${getWeekRangeText(data.startDate, wIdx)}</span><h3>${w.title}</h3><div style="font-size:1.5em; font-weight:900; color:${getStatusColor(per)}; margin:10px 0;">${per}%</div></div>`;
+            board.innerHTML += `<div class="block-card" style="border-color:${getStatusColor(per)}" onclick="openModal(${wIdx})"><span class="block-date">${getWeekRangeText(data.startDate, wIdx)}</span><h3>${w.title}</h3><div style="font-size:1.8em; font-weight:900; color:${getStatusColor(per)}; margin-top:8px;">${per}%</div></div>`;
         });
-
         const totalRate = totalAll === 0 ? 0 : Math.round((doneAll / totalAll) * 100);
         const c = getStatusColor(totalRate);
         document.getElementById('total-per-text').innerText = totalRate + '%';
         document.getElementById('total-per-text').style.color = c;
         document.getElementById('main-progress-bar').style.width = totalRate + '%';
         document.getElementById('main-progress-bar').style.backgroundColor = c;
-        
-        renderPendingList();
-        renderHistory();
-        updateDDay();
+        renderPendingList(); renderHistory(); updateDDay();
     }
 
     function renderPendingList() {
-        const container = document.getElementById('pending-container');
-        container.innerHTML = '';
-        let hasPending = false;
-        data.weeks.forEach((w, wIdx) => {
-            w.days.forEach((d, dIdx) => {
-                d.todos.forEach((t, tIdx) => {
-                    if (!t.done) {
-                        hasPending = true;
-                        container.innerHTML += `<div class="todo-item"><span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check" onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><span style="flex:1; font-size:1em; font-weight:500;">${t.text}</span>${t.important ? '<span style="color:var(--gold);">★</span>' : ''}</div>`;
-                    }
-                });
-            });
-        });
-        if (!hasPending) container.innerHTML = '<p style="text-align:center; opacity:0.5;">모든 계획을 달성했습니다! 🥳</p>';
+        const container = document.getElementById('pending-container'); container.innerHTML = ''; let hasPending = false;
+        data.weeks.forEach((w, wIdx) => { w.days.forEach((d, dIdx) => { d.todos.forEach((t, tIdx) => {
+            if (!t.done) { hasPending = true; container.innerHTML += `<div class="todo-item"><span class="pending-tag" style="font-size:0.9em; font-weight:900; color:var(--primary); min-width:80px; text-align:center;">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check" onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><span style="flex:1; font-size:1.1em; font-weight:500;">${t.text}</span>${t.important ? '<span style="color:var(--gold); font-size:1.3em;">★</span>' : ''}</div>`; }
+        }); }); });
+        if (!hasPending) container.innerHTML = '<p style="text-align:center; opacity:0.5; font-size:1.1em;">모든 계획 달성! 🥳</p>';
     }
 
     function renderHistory() {
-        const container = document.getElementById('history-grid');
-        if (data.history.length === 0) { container.innerHTML = '<p style="text-align:center; opacity:0.5; width:100%;">아직 보관된 기수가 없습니다.</p>'; return; }
-        
+        const container = document.getElementById('history-grid'); if (data.history.length === 0) { container.innerHTML = '<p style="text-align:center; opacity:0.5; width:100%;">보관된 기수가 없습니다.</p>'; return; }
         container.innerHTML = data.history.map((h, hIdx) => {
-            let hTotal = 0, hDone = 0;
-            h.weeks.forEach(w => w.days.forEach(d => { hTotal += d.todos.length; hDone += d.todos.filter(t => t.done).length; }));
+            let hTotal = 0, hDone = 0; h.weeks.forEach(w => w.days.forEach(d => { hTotal += d.todos.length; hDone += d.todos.filter(t => t.done).length; }));
             const per = hTotal === 0 ? 0 : Math.round((hDone / hTotal) * 100);
-            return `<div class="block-card" onclick="viewHistory(${hIdx})" style="border-color:${getStatusColor(per)}"><span class="block-date">${h.startDate} 시작</span><h3>제 ${h.season}기</h3><div style="font-size:1.2em; font-weight:900; color:${getStatusColor(per)};">${per}%</div></div>`;
+            return `<div class="block-card" onclick="viewHistory(${hIdx})" style="border-color:${getStatusColor(per)}"><span class="block-date">${h.startDate}</span><h3>제 ${h.season}기</h3><div style="font-size:1.5em; font-weight:900; color:${getStatusColor(per)};">${per}%</div></div>`;
         }).join('');
     }
 
