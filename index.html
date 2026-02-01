@@ -3,41 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12주 마스터: 구름 저장 버전</title>
+    <title>12-Week Masterpiece Cloud</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <style>
-        /* 이전과 똑같은 예쁜 디자인 */
+        /* 이전의 그 멋진 다크모드 디자인들 */
         :root { --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f; --primary: #0071e3; --border: #d2d2d7; }
         [data-theme='dark'] { --bg: #000000; --card: #1c1c1e; --text: #f5f5f7; --border: #3a3a3c; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-        .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--border); }
-        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #34c759; color: white; padding: 5px 15px; border-radius: 20px; opacity: 0; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 80px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .card { background: var(--card); border-radius: 18px; padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .btn { padding: 8px 15px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
+        .todo-item { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 10px; border-radius: 12px; margin-bottom: 5px; }
+        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: #34c759; color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 9999; }
     </style>
 </head>
 <body data-theme="dark">
 
-<div id="save-status">구름 창고 저장 완료!</div>
+<div id="save-status">구름 저장 완료! ☁️</div>
 
-<div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-    <h2 id="display-title">🏆 12주 마스터</h2>
-    <div>
-        <button id="btn-login" class="btn" onclick="googleLogin()">🔑 구글 로그인</button>
-        <span id="user-name" style="display:none; font-weight:bold;"></span>
+<div class="header">
+    <h2 style="margin:0;">🏆 12주 마스터</h2>
+    <div id="auth-box">
+        <button id="btn-login" class="btn" onclick="googleLogin()">🔑 로그인</button>
+        <div id="user-info" style="display:none; text-align:right;">
+            <span id="user-name" style="font-size:0.8em; display:block;"></span>
+            <button onclick="googleLogout()" style="background:none; border:none; color:#ff3b30; font-size:0.7em; cursor:pointer;">로그아웃</button>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <p>로그인을 하면 내가 적은 투두리스트가 구름 창고에 안전하게 저장돼요!</p>
-    <div id="board">
-        </div>
+<div class="card" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center;">
+    <div>
+        <div style="font-size:0.7em; opacity:0.7;">집중타이머</div>
+        <div id="timer" style="font-size:1.5em; font-weight:900;">25:00</div>
+        <button onclick="toggleTimer()" id="timer-btn" class="btn" style="font-size:0.6em; padding:4px 8px;">START</button>
+    </div>
+    <div>
+        <div style="font-size:0.7em; opacity:0.7;">전체 달성률</div>
+        <div id="total-per" style="font-size:1.5em; font-weight:900; color:var(--primary);">0%</div>
+    </div>
 </div>
 
+<div id="board"></div>
+
 <script>
-    // 1. 아까 찾은 열쇠(Config)를 여기에 넣었어요!
+    // 아까 설정한 구름 창고 열쇠
     const firebaseConfig = {
         apiKey: "AIzaSyDUkSZV-F8u_WWlsm4DPiQlg4zEsN0hxvQ",
         authDomain: "week-project-29b17.firebaseapp.com",
@@ -52,63 +65,97 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // 데이터 저장 변수
-    let data = JSON.parse(localStorage.getItem('12W_DATA')) || {
-        weeks: Array.from({length: 12}, (_, i) => ({ title: (i+1)+'주차', todos: [] }))
-    };
+    let data = { weeks: Array.from({length: 12}, (_, i) => ({ title: (i+1)+'주차', todos: [] })) };
+    let timerInterval, timeLeft = 1500, isRunning = false;
 
-    // 2. 구글 로그인 마법
+    // 1. 구글 로그인
     function googleLogin() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).then((result) => {
-            document.getElementById('btn-login').style.display = 'none';
-            document.getElementById('user-name').style.display = 'inline';
-            document.getElementById('user-name').innerText = result.user.displayName + "님";
-            confetti();
-            loadFromCloud(result.user.uid);
-        }).catch(err => alert("로그인 실패: " + err.message));
+        auth.signInWithPopup(provider).catch(e => alert("실패: " + e.message));
     }
 
-    // 3. 구름에 저장하기
+    function googleLogout() { auth.signOut().then(() => location.reload()); }
+
+    // 로그인 상태 체크
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('btn-login').style.display = 'none';
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('user-name').innerText = user.displayName + "님";
+            loadFromCloud(user.uid);
+        }
+    });
+
+    // 2. 구름 저장 및 불러오기
     function save() {
-        localStorage.setItem('12W_DATA', JSON.stringify(data));
+        render();
         const user = auth.currentUser;
         if (user) {
-            db.collection("users").doc(user.uid).set(data);
-            document.getElementById('save-status').style.opacity = '1';
-            setTimeout(() => { document.getElementById('save-status').style.opacity = '0'; }, 1000);
+            db.collection("users").doc(user.uid).set(data).then(() => {
+                const status = document.getElementById('save-status');
+                status.style.opacity = '1';
+                setTimeout(() => status.style.opacity = '0', 1000);
+            });
         }
-        render();
     }
 
-    // 4. 구름에서 불러오기
     function loadFromCloud(uid) {
-        db.collection("users").doc(uid).get().then((doc) => {
-            if (doc.exists) {
-                data = doc.data();
-                render();
-            }
+        db.collection("users").doc(uid).get().then(doc => {
+            if (doc.exists) { data = doc.data(); render(); }
         });
     }
 
+    // 3. 화면 그리기 및 기능들
     function render() {
         const board = document.getElementById('board');
-        board.innerHTML = data.weeks.map((w, i) => `
-            <div style="margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:10px;">
-                <strong>${w.title}</strong> 
-                <button onclick="addTodo(${i})">+</button>
-                ${w.todos.map(t => `<div>- ${t}</div>`).join('')}
-            </div>
-        `).join('');
+        let total = 0, done = 0;
+        board.innerHTML = data.weeks.map((w, wIdx) => {
+            const per = w.todos.length === 0 ? 0 : Math.round((w.todos.filter(t => t.done).length / w.todos.length) * 100);
+            total += w.todos.length; done += w.todos.filter(t => t.done).length;
+            
+            return `
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span style="font-weight:bold;">${w.title}</span>
+                        <span style="color:var(--primary); font-weight:bold;">${per}%</span>
+                    </div>
+                    ${w.todos.map((t, tIdx) => `
+                        <div class="todo-item" style="${t.done?'opacity:0.5;':''}">
+                            <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo(${wIdx}, ${tIdx})">
+                            <span style="${t.done?'text-decoration:line-through;':''}">${t.text}</span>
+                        </div>
+                    `).join('')}
+                    <input type="text" placeholder="+ 할 일 추가" onkeypress="if(event.key==='Enter') addTodo(${wIdx}, this)" 
+                        style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); box-sizing:border-box; margin-top:10px;">
+                </div>`;
+        }).join('');
+        document.getElementById('total-per').innerText = (total===0?0:Math.round((done/total)*100)) + '%';
     }
 
-    function addTodo(wIdx) {
-        const task = prompt("할 일을 적으세요:");
-        if(task) {
-            data.weeks[wIdx].todos.push(task);
-            save();
+    function addTodo(wIdx, el) {
+        if(el.value.trim()) {
+            data.weeks[wIdx].todos.push({text: el.value, done: false});
+            el.value = ''; save();
         }
     }
+
+    function toggleTodo(wIdx, tIdx) {
+        data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done;
+        if(data.weeks[wIdx].todos[tIdx].done) confetti();
+        save();
+    }
+
+    function toggleTimer() {
+        if (isRunning) { clearInterval(timerInterval); isRunning = false; document.getElementById('timer-btn').innerText = "START"; }
+        else {
+            isRunning = true; document.getElementById('timer-btn').innerText = "STOP";
+            timerInterval = setInterval(() => {
+                timeLeft--; updateTimer();
+                if (timeLeft <= 0) { clearInterval(timerInterval); alert("집중 끝!"); timeLeft = 1500; updateTimer(); }
+            }, 1000);
+        }
+    }
+    function updateTimer() { const m = Math.floor(timeLeft/60), s = timeLeft%60; document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`; }
 
     render();
 </script>
