@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Full Restored V18.2</title>
+    <title>12-Week Masterpiece: Full Vision V18.3</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -20,16 +20,16 @@
             --border: #3a3a3c; --quote-sub: #a1a1a6; --input-bg: #0a0a0a;
         }
 
-        body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; padding-top: max(25px, env(safe-area-inset-top)); }
+        body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; padding-top: max(30px, env(safe-area-inset-top)); }
         .container { max-width: 1000px; margin: auto; }
         
-        /* 상단 헤더 및 로그인 배치 복구 */
+        /* 상단 헤더 및 로그인 */
         .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
         .title-zone { flex: 1; }
         .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 100%; outline: none; resize: none; overflow: hidden; min-height: 40px; line-height: 1.3; font-family: inherit; }
         .auth-btn { padding: 8px 15px; border-radius: 12px; border: none; cursor: pointer; font-weight: 800; font-size: 0.8em; white-space: nowrap; background: var(--primary); color: white; }
         
-        /* 대시보드 배치 복구 (원본 스타일) */
+        /* 대시보드 */
         .dashboard { display: grid; grid-template-columns: 1fr 1.8fr 1.5fr; gap: 12px; margin-bottom: 15px; }
         @media (max-width: 600px) { .dashboard { grid-template-columns: 1fr; } }
         .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); transition: 0.3s; }
@@ -50,7 +50,7 @@
         .block-card h3 { margin: 0; font-size: 1.2em; font-weight: 900; }
         .block-date { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
 
-        /* 비전 보드 및 사진 관리 */
+        /* 비전 보드 */
         .vision-card { aspect-ratio:1/1; background:var(--input-bg); border:1px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; position: relative; }
         .vision-card img { width: 100%; height: 100%; object-fit: cover; }
         .img-controls { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; opacity: 0; transition: 0.2s; }
@@ -180,7 +180,7 @@
     const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V18_2')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V18_3')) || { 
         theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], currentSeason: 1, history: [],
         weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
@@ -193,7 +193,7 @@
     auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; loadFromCloud(user.uid); } });
 
     function save() { 
-        localStorage.setItem('12W_V18_2', JSON.stringify(data)); 
+        localStorage.setItem('12W_V18_3', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) db.collection("users").doc(user.uid).set(data).then(() => { 
             const s=document.getElementById('save-status'); s.style.opacity='1'; setTimeout(()=>s.style.opacity='0',800); 
@@ -242,6 +242,39 @@
         confetti(); save();
     }
 
+    // 보관함(지나간 기수) 기록 상세 보기 복구 함수
+    function viewHistory(hIdx) {
+        const h = data.history[hIdx];
+        const container = document.getElementById('planner-container');
+        document.getElementById('modal-title').innerText = `제 ${h.season}기 기록: ${h.title}`;
+        
+        let total = 0, done = 0; 
+        h.weeks.forEach(w => w.days.forEach(d => { total += d.todos.length; done += d.todos.filter(t => t.done).length; }));
+        const per = total === 0 ? 0 : Math.round((done/total)*100);
+
+        container.innerHTML = `
+            <div style="text-align:center; padding:15px; background:var(--input-bg); border-radius:15px; margin-bottom:15px;">
+                <div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px;">
+                ${h.images.map(img => `<div onclick="zoomImage('${img}')" style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee; cursor:pointer;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}
+            </div>
+            ${h.weeks.map(w => {
+                const wTasks = w.days.flatMap((d, dIdx) => d.todos.map(t => ({...t, day: dayNames[dIdx]})));
+                if(wTasks.length === 0) return '';
+                return `
+                    <div class="day-section">
+                        <div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')">
+                            <span>${w.title} 기록</span><span>▼</span>
+                        </div>
+                        <div class="day-content">
+                            ${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-weight:900; color:var(--primary); min-width:40px;">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}
+                        </div>
+                    </div>`;
+            }).join('')}`;
+        document.getElementById('planner-modal').style.display = "block";
+    }
+
     function render() {
         document.body.setAttribute('data-theme', data.theme);
         const titleInput = document.getElementById('master-title'); titleInput.value = data.title; resizeTitle(titleInput);
@@ -275,9 +308,24 @@
         renderPendingList(); renderHistory(); updateDDay();
     }
 
+    // 미완료 리스트 렌더링 복구
     function renderPendingList() {
         const container = document.getElementById('pending-container'); container.innerHTML = '';
-        data.weeks.forEach((w, wIdx) => { w.days.forEach((d, dIdx) => { d.todos.forEach((t, tIdx) => { if (!t.done) container.innerHTML += `<div class="todo-item"><span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><span style="flex:1;">${t.text}</span></div>`; }); }); });
+        data.weeks.forEach((w, wIdx) => {
+            w.days.forEach((d, dIdx) => {
+                d.todos.forEach((t, tIdx) => {
+                    if (!t.done) {
+                        container.innerHTML += `
+                            <div class="todo-item">
+                                <span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span>
+                                <input type="checkbox" class="todo-check" onclick="toggleTodo(${wIdx},${dIdx},${tIdx})">
+                                <span style="flex:1; font-size:1em;">${t.text}</span>
+                            </div>`;
+                    }
+                });
+            });
+        });
+        if(container.innerHTML === '') container.innerHTML = '<p style="text-align:center; opacity:0.5;">모든 계획을 완료했습니다! 🎉</p>';
     }
 
     function renderHistory() {
@@ -286,7 +334,7 @@
         data.history.forEach((h, hIdx) => {
             let hTotal = 0, hDone = 0; h.weeks.forEach(w => w.days.forEach(d => { hTotal += d.todos.length; hDone += d.todos.filter(t => t.done).length; }));
             const per = hTotal === 0 ? 0 : Math.round((hDone / hTotal) * 100);
-            container.innerHTML += `<div class="block-card" style="border-color:${getStatusColor(per)}"><span class="block-date">${h.startDate}</span><h3>제 ${h.season}기</h3><div style="font-size:1.2em; font-weight:900; color:${getStatusColor(per)};">${per}%</div></div>`;
+            container.innerHTML += `<div class="block-card" onclick="viewHistory(${hIdx})" style="border-color:${getStatusColor(per)}"><span class="block-date">${h.startDate}</span><h3>제 ${h.season}기</h3><div style="font-size:1.2em; font-weight:900; color:${getStatusColor(per)};">${per}%</div></div>`;
         });
     }
 
