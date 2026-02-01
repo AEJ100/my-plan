@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Perfect Control V17.4</title>
+    <title>12-Week Masterpiece: Engine Restored V17.5</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -44,13 +44,6 @@
         .img-controls { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; opacity: 0; transition: 0.2s; }
         .vision-card:hover .img-controls { opacity: 1; }
         .img-btn { background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 6px; padding: 4px 6px; font-size: 10px; cursor: pointer; font-weight: bold; }
-        .img-btn:hover { background: var(--accent); }
-
-        .block-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .block-card { background: var(--card); border-radius: 18px; padding: 25px; border: 3px solid var(--border); transition: 0.3s; cursor: pointer; text-align: center; }
-        .block-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .block-card h3 { margin: 0; font-size: 1.3em; font-weight: 900; }
-        .block-date { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
 
         #lightbox { display: none; position: fixed; z-index: 9500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; cursor: zoom-out; }
         #lightbox img { max-width: 90%; max-height: 90%; border-radius: 15px; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
@@ -62,6 +55,13 @@
         .goal-accordion summary { padding: 10px 15px; background: var(--input-bg); color: var(--primary); font-weight: 900; font-size: 1em; cursor: pointer; }
         .goal-textarea { width: 100%; background: var(--card); border: none; color: var(--text); padding: 18px; box-sizing: border-box; resize: vertical; min-height: 100px; font-size: 1.4em; font-weight: 800; line-height: 1.5; outline: none; }
 
+        .block-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .block-card { background: var(--card); border-radius: 18px; padding: 25px; border: 3px solid var(--border); transition: 0.3s; cursor: pointer; text-align: center; }
+        .block-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .block-card h3 { margin: 0; font-size: 1.3em; font-weight: 900; }
+        .block-date { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
+
+        /* 모달 및 투두 복구 스타일 */
         .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); }
         .modal-content { background: var(--card); margin: 3vh auto; padding: 20px; border-radius: 24px; width: 95%; max-width: 600px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
         
@@ -70,9 +70,9 @@
         .day-content { padding: 10px; display: none; }
         .day-content.active { display: block; }
         
-        .todo-item { display: flex; align-items: center; background: var(--card); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; gap: 8px; border: 1px solid var(--border); }
+        .todo-item { display: flex; align-items: center; background: var(--card); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; gap: 8px; border: 1px solid var(--border); transition: 0.2s; }
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-size: 1em; }
-        .star-icon { cursor: pointer; color: #ccc; } .star-icon.active { color: var(--gold); }
+        .star-icon { cursor: pointer; color: #ccc; font-size: 1.2em; transition: 0.2s; } .star-icon.active { color: var(--gold); }
         .todo-check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--success); }
 
         .pending-tag { font-size: 0.95em; font-weight: 900; color: var(--primary); width: 85px; display: inline-block; background: var(--border); padding: 2px 6px; border-radius: 6px; text-align: center; margin-right: 10px; }
@@ -179,7 +179,7 @@
     const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V17_4')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V17_5')) || { 
         theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], 
         currentSeason: 1, history: [],
@@ -193,7 +193,7 @@
     auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; loadFromCloud(user.uid); } });
 
     function save() { 
-        localStorage.setItem('12W_V17_4', JSON.stringify(data)); 
+        localStorage.setItem('12W_V17_5', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) db.collection("users").doc(user.uid).set(data).then(() => { 
             const s=document.getElementById('save-status'); s.style.opacity='1'; setTimeout(()=>s.style.opacity='0',800); 
@@ -221,16 +221,64 @@
         confetti(); save();
     }
 
+    // 투두 복구 로직: 정렬 기능 포함
     function openModal(wIdx) { currentW = wIdx; renderPlanner(wIdx); document.getElementById('planner-modal').style.display = "block"; }
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
-        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 요일별 계획 (${getWeekRangeText(data.startDate, wIdx)})`;
+        document.getElementById('modal-title').innerText = `${wIdx + 1}주 계획 (${getWeekRangeText(data.startDate, wIdx)})`;
         container.innerHTML = dayNames.map((day, dIdx) => {
             const dayData = data.weeks[wIdx].days[dIdx];
+            // 중요도(star) -> 완료여부(done) 순으로 정렬
+            dayData.todos.sort((a,b) => {
+                if(a.important !== b.important) return a.important ? -1 : 1;
+                if(a.done !== b.done) return a.done ? 1 : -1;
+                return 0;
+            });
             const isActive = openDayIdx === dIdx ? 'active' : '';
-            return `<div class="day-section"><div class="day-header" onclick="toggleDay(${dIdx})"><span>📅 ${day}</span><span>${isActive ? '▲' : '▼'}</span></div><div class="day-content ${isActive}">${dayData.todos.map((t, tIdx) => `<div class="todo-item" style="${t.done?'opacity:0.5':''}"><input type="checkbox" style="width:20px; height:20px;" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><input type="text" class="todo-input" value="${t.text}" oninput="editTodo(${wIdx},${dIdx},${tIdx},this.value)" style="${t.done?'text-decoration:line-through':''}"><button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent); cursor:pointer;">×</button></div>`).join('')}<input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 추가" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); box-sizing:border-box;"></div></div>`;
+            return `<div class="day-section">
+                <div class="day-header" onclick="toggleDay(${dIdx})"><span>📅 ${day}</span><span>${isActive ? '▲' : '▼'}</span></div>
+                <div class="day-content ${isActive}">
+                    <div id="todo-list-${wIdx}-${dIdx}">
+                        ${dayData.todos.map((t, tIdx) => `
+                        <div class="todo-item" style="${t.done?'opacity:0.5':''}">
+                            <span class="star-icon ${t.important?'active':''}" onclick="toggleStar(${wIdx},${dIdx},${tIdx})">★</span>
+                            <input type="checkbox" class="todo-check" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})">
+                            <input type="text" class="todo-input" value="${t.text}" 
+                                oninput="editTodo(${wIdx},${dIdx},${tIdx},this.value)" 
+                                onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})"
+                                style="${t.done?'text-decoration:line-through':''}">
+                            <button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent); cursor:pointer;">×</button>
+                        </div>`).join('')}
+                    </div>
+                    <input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 새 계획 입력 (Enter)" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); box-sizing:border-box; margin-top:5px;">
+                </div>
+            </div>`;
         }).join('');
     }
+
+    function toggleDay(dIdx) { openDayIdx = (openDayIdx === dIdx) ? null : dIdx; renderPlanner(currentW); }
+    function closeModal() { document.getElementById('planner-modal').style.display = "none"; openDayIdx = null; render(); }
+    
+    function addTodo(wIdx, dIdx) { 
+        const v = document.getElementById(`in-${wIdx}-${dIdx}`); 
+        if(v.value.trim()){ 
+            data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false, important: false}); 
+            v.value = ''; renderPlanner(wIdx);
+            // 다음 입력창으로 포커스 유지
+            setTimeout(() => document.getElementById(`in-${wIdx}-${dIdx}`).focus(), 10);
+        } 
+    }
+    function toggleTodo(wIdx, dIdx, tIdx) { 
+        data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; 
+        if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); 
+        renderPlanner(wIdx); save(); 
+    }
+    function toggleStar(wIdx, dIdx, tIdx) {
+        data.weeks[wIdx].days[dIdx].todos[tIdx].important = !data.weeks[wIdx].days[dIdx].todos[tIdx].important;
+        renderPlanner(wIdx); save();
+    }
+    function editTodo(wIdx, dIdx, tIdx, val) { data.weeks[wIdx].days[dIdx].todos[tIdx].text = val; }
+    function deleteTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); }
 
     function viewHistory(hIdx) {
         const h = data.history[hIdx];
@@ -241,13 +289,6 @@
         container.innerHTML = `<div style="text-align:center; padding:15px; background:var(--input-bg); border-radius:15px; margin-bottom:15px;"><div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div></div><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px;">${h.images.map(img => `<div onclick="zoomImage('${img}')" style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee; cursor:pointer;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}</div>${h.weeks.map(w => { const wTasks = w.days.flatMap((d, dIdx) => d.todos.map(t => ({...t, day: dayNames[dIdx]}))); if(wTasks.length === 0) return ''; return `<div class="day-section"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>${w.title}</span><span>▼</span></div><div class="day-content">${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-weight:900; color:var(--primary); min-width:40px;">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}</div></div>`; }).join('')}`;
         document.getElementById('planner-modal').style.display = "block";
     }
-
-    function toggleDay(dIdx) { openDayIdx = (openDayIdx === dIdx) ? null : dIdx; renderPlanner(currentW); }
-    function closeModal() { document.getElementById('planner-modal').style.display = "none"; openDayIdx = null; render(); }
-    function addTodo(wIdx, dIdx) { const v = document.getElementById(`in-${wIdx}-${dIdx}`); if(v.value.trim()){ data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false}); v.value = ''; renderPlanner(wIdx); } }
-    function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); if(currentW !== null) renderPlanner(wIdx); save(); }
-    function editTodo(wIdx, dIdx, tIdx, val) { data.weeks[wIdx].days[dIdx].todos[tIdx].text = val; }
-    function deleteTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); }
 
     function render() {
         document.body.setAttribute('data-theme', data.theme);
