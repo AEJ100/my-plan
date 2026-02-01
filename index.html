@@ -255,4 +255,95 @@
     }
 
     function toggleDay(dIdx) { openDayIdx = (openDayIdx === dIdx) ? null : dIdx; renderPlanner(currentW); }
-    function closeModal() { document.getElementById('planner-modal').style
+    function closeModal() { document.getElementById('planner-modal').style.display = "none"; openDayIdx = null; render(); }
+    function addTodo(wIdx, dIdx) { const v = document.getElementById(`in-${wIdx}-${dIdx}`); if(v.value.trim()){ data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false, important: false}); v.value = ''; renderPlanner(wIdx); setTimeout(() => document.getElementById(`in-${wIdx}-${dIdx}`).focus(), 10); } }
+    function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); renderPlanner(wIdx); save(); }
+    function toggleStar(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].important = !data.weeks[wIdx].days[dIdx].todos[tIdx].important; renderPlanner(wIdx); save(); }
+    function editTodo(wIdx, dIdx, tIdx, val) { data.weeks[wIdx].days[dIdx].todos[tIdx].text = val; }
+    function deleteTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); }
+
+    function viewHistory(hIdx) {
+        const h = data.history[hIdx];
+        const container = document.getElementById('planner-container');
+        document.getElementById('modal-title').innerText = `제 ${h.season}기 기록: ${h.title}`;
+        let total = 0, done = 0; h.weeks.forEach(w => w.days.forEach(d => { total += d.todos.length; done += d.todos.filter(t => t.done).length; }));
+        const per = total === 0 ? 0 : Math.round((done/total)*100);
+        container.innerHTML = `<div style="text-align:center; padding:15px; background:var(--input-bg); border-radius:15px; margin-bottom:15px;"><div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div></div><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px;">${h.images.map(img => `<div onclick="zoomImage('${img}')" style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee; cursor:pointer;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}</div>${h.weeks.map(w => { const wTasks = w.days.flatMap((d, dIdx) => d.todos.map(t => ({...t, day: dayNames[dIdx]}))); if(wTasks.length === 0) return ''; return `<div class="day-section"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>${w.title}</span><span>▼</span></div><div class="day-content">${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-weight:900; color:var(--primary); min-width:40px;">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}</div></div>`; }).join('')}`;
+        document.getElementById('planner-modal').style.display = "block";
+    }
+
+    // 제목칸 자동 높이 조절
+    function resizeTitle(el) {
+        if(!el) return;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
+    function render() {
+        document.body.setAttribute('data-theme', data.theme);
+        
+        // 제목 렌더링 및 높이 조절
+        const titleInput = document.getElementById('master-title');
+        titleInput.value = data.title;
+        resizeTitle(titleInput);
+
+        document.getElementById('start-date').value = data.startDate;
+        document.getElementById('season-display').innerText = `제 ${data.currentSeason}기 진행 중`;
+        document.getElementById('goal-long').value = data.goals.long || "";
+        document.getElementById('goal-three').value = data.goals.three || "";
+        document.getElementById('goal-twelve').value = data.goals.twelve || "";
+        
+        const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
+        data.images.forEach((img, i) => {
+            const div = document.createElement('div'); div.className = 'vision-card';
+            if(img) {
+                div.innerHTML = `<img src="${img}" onclick="zoomImage('${img}')"><div class="img-controls"><button class="img-btn" onclick="event.stopPropagation(); handleImage(${i})">🔄</button><button class="img-btn" onclick="event.stopPropagation(); removeImage(${i})">🗑️</button></div>`;
+            } else {
+                div.innerHTML = '+'; div.onclick = () => handleImage(i);
+            }
+            gallery.appendChild(div);
+        });
+        
+        const board = document.getElementById('board'); board.innerHTML = '';
+        let totalAll = 0, doneAll = 0;
+        data.weeks.forEach((w, wIdx) => {
+            let weekTotal = 0, weekDone = 0; w.days.forEach(d => { weekTotal += d.todos.length; weekDone += d.todos.filter(t => t.done).length; });
+            const per = weekTotal === 0 ? 0 : Math.round((weekDone / weekTotal) * 100);
+            totalAll += weekTotal; doneAll += weekDone;
+            board.innerHTML += `<div class="block-card" style="border-color:${getStatusColor(per)}" onclick="openModal(${wIdx})"><span class="block-date">${getWeekRangeText(data.startDate, wIdx)}</span><h3>${w.title}</h3><div style="font-size:1.5em; font-weight:900; color:${getStatusColor(per)}; margin:10px 0;">${per}%</div></div>`;
+        });
+        const totalRate = totalAll === 0 ? 0 : Math.round((doneAll / totalAll) * 100);
+        document.getElementById('total-per-text').innerText = totalRate + '%';
+        document.getElementById('main-progress-bar').style.width = totalRate + '%';
+        document.getElementById('main-progress-bar').style.backgroundColor = getStatusColor(totalRate);
+        renderPendingList(); renderHistory(); updateDDay();
+    }
+
+    function renderPendingList() {
+        const container = document.getElementById('pending-container'); container.innerHTML = '';
+        data.weeks.forEach((w, wIdx) => { w.days.forEach((d, dIdx) => { d.todos.forEach((t, tIdx) => { if (!t.done) { container.innerHTML += `<div class="todo-item"><span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" style="width:18px; height:18px;" onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><span style="flex:1;">${t.text}</span></div>`; } }); }); });
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-grid'); container.innerHTML = '';
+        if (data.history.length === 0) { container.innerHTML = '<p style="text-align:center; opacity:0.5; width:100%;">아직 보관된 기록이 없습니다.</p>'; return; }
+        data.history.forEach((h, hIdx) => {
+            let hTotal = 0, hDone = 0; h.weeks.forEach(w => w.days.forEach(d => { hTotal += d.todos.length; hDone += d.todos.filter(t => t.done).length; }));
+            const per = hTotal === 0 ? 0 : Math.round((hDone / hTotal) * 100);
+            container.innerHTML += `<div class="block-card" onclick="viewHistory(${hIdx})" style="border-color:${getStatusColor(per)}"><span class="block-date">${h.startDate}</span><h3>제 ${h.season}기</h3><div style="font-size:1.2em; font-weight:900; color:${getStatusColor(per)};">${per}%</div></div>`;
+        });
+    }
+
+    function autoSaveField(f, v) { data[f] = v; save(); }
+    function autoSaveGoal(f, v) { data.goals[f] = v; save(); }
+    function updateDDay() { const start=new Date(data.startDate); const end=new Date(start); end.setDate(start.getDate()+84); const diff=Math.ceil((end-new Date())/(1000*60*60*24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
+    function refreshQuote() { const rq=quotes[Math.floor(Math.random()*quotes.length)]; document.getElementById('quote-display').innerText=`"${rq.q}"`; document.getElementById('quote-author').innerText=`- ${rq.a}`; }
+    function toggleTimer() { if(isRunning){ clearInterval(timerInterval); isRunning=false; document.getElementById('timer-btn').innerText=\"START\"; } else { isRunning=true; document.getElementById('timer-btn').innerText=\"STOP\"; timerInterval=setInterval(()=>{ timeLeft--; updateTimerDisp(); if(timeLeft<=0){ clearInterval(timerInterval); alert(\"집중 끝!\"); timeLeft=1500; updateTimerDisp(); isRunning=false; } }, 1000); } }
+    function updateTimerDisp() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timer').innerText=`${m}:${s<10?'0':''}${s}`; }
+    function handleImage(idx) { const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const f=e.target.files[0]; const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); }; i.click(); }
+    function toggleTheme() { data.theme = data.theme==='dark'?'light':'dark'; save(); }
+    function resetAll() { if(confirm("초기화할까요?")){ localStorage.clear(); location.reload(); } }
+    refreshQuote(); render();
+</script>
+</body>
+</html>
