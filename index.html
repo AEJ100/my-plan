@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Classic Fix V23.6</title>
+    <title>12-Week Masterpiece: Independent Control V22.3</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -50,12 +50,16 @@
         .block-card { background: var(--card); border-radius: 18px; padding: 20px; border: 3px solid var(--border); transition: 0.3s; cursor: pointer; text-align: center; }
         .block-card:hover { transform: translateY(-5px); border-color: var(--primary); }
         .block-card h3 { margin: 0; font-size: 1.2em; font-weight: 900; }
+        .block-date { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
 
-        .vision-card { aspect-ratio:1/1; background:var(--input-bg); border:1px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; position: relative; font-size: 2em; }
+        .vision-card { aspect-ratio:1/1; background:var(--input-bg); border:1px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; position: relative; }
         .vision-card img { width: 100%; height: 100%; object-fit: cover; }
         .img-controls { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; opacity: 0; transition: 0.2s; }
         .vision-card:hover .img-controls { opacity: 1; }
         .img-btn { background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 6px; padding: 4px 6px; font-size: 10px; cursor: pointer; }
+
+        #lightbox { display: none; position: fixed; z-index: 9500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; cursor: zoom-out; }
+        #lightbox img { max-width: 90%; max-height: 90%; border-radius: 15px; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
 
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; }
@@ -69,12 +73,11 @@
         .day-header { padding: 12px 15px; font-weight: 900; color: var(--primary); font-size: 1.1em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--card); }
         .day-content { padding: 10px; display: none; }
         .day-content.active { display: block; }
-        
         .todo-item { display: flex; align-items: center; background: var(--card); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; gap: 8px; border: 1px solid var(--border); transition: 0.2s; }
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-size: 1em; }
-        .todo-check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--success); }
         .star-icon { cursor: pointer; color: #ccc; font-size: 1.2em; } .star-icon.active { color: var(--gold); }
-        .delete-btn { border:none; background:none; color:var(--accent); cursor:pointer; font-size: 1.2em; padding: 0 5px; }
+        .todo-check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--success); }
+        .pending-tag { font-size: 0.85em; font-weight: 900; color: var(--primary); width: 75px; display: inline-block; background: var(--border); padding: 2px 6px; border-radius: 6px; text-align: center; margin-right: 10px; }
 
         .dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 4000; }
         .dock-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; }
@@ -84,6 +87,7 @@
 <body data-theme="dark">
 
 <div id="save-status">구름 저장 완료 ☁️</div>
+<div id="lightbox" onclick="this.style.display='none'"><img src="" id="lightbox-img"></div>
 
 <div id="planner-modal" class="modal" onclick="if(event.target.id==='planner-modal') closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -113,8 +117,8 @@
             <div id="dday-display" class="dday-box">D-84</div>
             <div style="text-align:center; margin-top:10px;"><input type="date" id="start-date" onchange="data.startDate=this.value; save(); render();"></div>
         </div>
-        <div class="quote-card" onclick="refreshQuote()" style="cursor:pointer;">
-            <div id="quote-display" style="font-weight:800; border-left:4px solid var(--primary); padding-left:15px; font-size: 0.85em; line-height: 1.4;">지혜를 불러오는 중...</div>
+        <div class="quote-card" onclick="refreshQuote()">
+            <div id="quote-display" style="font-weight:800; border-left:4px solid var(--primary); padding-left:15px;"></div>
             <div id="quote-author" style="color:var(--quote-sub); font-size:0.8em; margin-top:8px; margin-left:19px;"></div>
         </div>
         <div class="dual-card">
@@ -137,15 +141,30 @@
         <summary>🖼️ 비전 보드 & 핵심 목표</summary>
         <div style="padding: 20px 0;">
             <div id="vision-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 20px 20px;"></div>
-            <details class="goal-accordion" open><summary>✨ 장기목표</summary><textarea id="goal-long" class="goal-textarea" oninput="autoSaveGoal('long', this.value)"></textarea></details>
-            <details class="goal-accordion" open><summary>🎯 3년 목표</summary><textarea id="goal-three" class="goal-textarea" oninput="autoSaveGoal('three', this.value)"></textarea></details>
-            <details class="goal-accordion" open><summary>🚀 12주 목표</summary><textarea id="goal-twelve" class="goal-textarea" oninput="autoSaveGoal('twelve', this.value)"></textarea></details>
+            <details class="goal-accordion" open>
+                <summary>✨ 원대한 장기목표</summary>
+                <textarea id="goal-long" class="goal-textarea" placeholder="나의 가장 큰 꿈을 적어보세요" oninput="autoSaveGoal('long', this.value)"></textarea>
+            </details>
+            <details class="goal-accordion" open>
+                <summary>🎯 3년 중기목표</summary>
+                <textarea id="goal-three" class="goal-textarea" placeholder="3년 뒤 나의 모습은?" oninput="autoSaveGoal('three', this.value)"></textarea>
+            </details>
+            <details class="goal-accordion" open>
+                <summary>🚀 12주 목표</summary>
+                <textarea id="goal-twelve" class="goal-textarea" placeholder="이번 12주 동안 이룰 것은?" oninput="autoSaveGoal('twelve', this.value)"></textarea>
+            </details>
         </div>
     </details>
 
     <div class="block-grid" id="board"></div>
-    <details class="vision-section" id="pending-section" open><summary>📌 미완료 리스트 모아보기</summary><div id="pending-container" style="padding: 20px;"></div></details>
-    <details class="vision-section" open><summary>📜 지나간 기수 기록 (보관함)</summary><div id="history-grid" class="block-grid" style="padding: 20px;"></div></details>
+    <details class="vision-section" id="pending-section" open>
+        <summary>📌 미완료 리스트 모아보기</summary>
+        <div id="pending-container" style="padding: 20px;"></div>
+    </details>
+    <details class="vision-section" open>
+        <summary>📜 지나간 기수 기록 (보관함)</summary>
+        <div id="history-grid" class="block-grid" style="padding: 20px;"></div>
+    </details>
 </div>
 
 <div class="dock">
@@ -156,30 +175,24 @@
 <script>
     const firebaseConfig = { apiKey: "AIzaSyDUkSZV-F8u_WWlsm4DPiQlg4zEsN0hxvQ", authDomain: "week-project-29b17.firebaseapp.com", projectId: "week-project-29b17", storageBucket: "week-project-29b17.firebasestorage.app", messagingSenderId: "277326942781", appId: "1:277326942781:web:aef86a0c4bd94c4300d054", measurementId: "G-X9NWJ5SSW1" };
     firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore();
-    
-    // 명언 150개 데이터베이스 로드
-    const quotes = [
-        {q:"이봐, 해봤어?", a:"정주영"}, {q:"시련은 있어도 실패는 없다.", a:"정주영"}, {q:"하면 된다.", a:"정주영"},
-        {q:"내가 나를 사랑하지 않으면 아무도 나를 사랑하지 않는다.", a:"유재석"}, {q:"늦었다고 생각할 때가 진짜 너무 늦었다.", a:"박명수"},
-        {q:"포기하는 순간 핑계를 찾고, 믿는 순간 방법을 찾는다.", a:"김연아"}, {q:"인생은 속도가 아니라 방향이다.", a:"괴테"},
-        {q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"지옥을 걷고 있다면 계속 걸어가라.", a:"처칠"},
-        {q:"어제와 똑같이 살면서 다른 미래를 기대하지 마라.", a:"아인슈타인"}, {q:"사랑받고 싶다면 사랑하라.", a:"벤자민 프랭클린"},
-        {q:"현재에 충실하라.", a:"카르페 디엠"}, {q:"나를 죽이지 못하는 고통은 나를 강하게 한다.", a:"니체"},
-        {q:"꿈이 있다면 절대 포기하지 마라.", a:"익명"}, {q:"할 수 있다고 믿는 순간 방법을 찾게 된다.", a:"김연아"}
-        // ... 내부적으로 150개 문구 보존
-    ];
-
+    const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
-    let data = JSON.parse(localStorage.getItem('12W_Final_V23_6')) || { 
-        theme:'dark', title:"🏆 나의 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
+
+    let data = JSON.parse(localStorage.getItem('12W_V18_9')) || { 
+        theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], currentSeason: 1, history: [],
         weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
     };
     
+    // openDays를 객체로 관리하여 각 요일의 열림 상태를 독립적으로 저장
     let currentW = null, openDays = {}, timerInterval, timeLeft = 1500, isRunning = false;
 
+    function googleLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    function googleLogout() { auth.signOut().then(()=>location.reload()); }
+    auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; loadFromCloud(user.uid); } });
+
     function save() { 
-        localStorage.setItem('12W_Final_V23_6', JSON.stringify(data)); 
+        localStorage.setItem('12W_V18_9', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) db.collection("users").doc(user.uid).set(data).then(() => { 
             const s=document.getElementById('save-status'); s.style.opacity='1'; setTimeout(()=>s.style.opacity='0',800); 
@@ -187,87 +200,102 @@
         render();
     }
 
-    function googleLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    function googleLogout() { auth.signOut().then(()=>location.reload()); }
-    auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; loadFromCloud(user.uid); } });
     function loadFromCloud(uid) { db.collection("users").doc(uid).get().then(doc => { if(doc.exists){ data=doc.data(); render(); } }); }
-
     function getStatusColor(per) { if(per >= 100) return 'var(--success)'; if(per >= 70) return 'var(--primary)'; if(per >= 30) return '#ff9500'; return 'var(--border)'; }
     function getWeekRangeText(baseDate, wIdx) {
-        const start = new Date(baseDate); const wStart = new Date(start); wStart.setDate(start.getDate() + (wIdx * 7));
+        const start = new Date(baseDate);
+        const wStart = new Date(start); wStart.setDate(start.getDate() + (wIdx * 7));
         const wEnd = new Date(wStart); wEnd.setDate(wStart.getDate() + 6);
         return `${wStart.getMonth()+1}/${wStart.getDate()}~${wEnd.getMonth()+1}/${wEnd.getDate()}`;
     }
 
-    // 모달 렌더링 (엔터 추가 기능 포함)
+    function zoomImage(src) { if(!src) return; document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').style.display = 'flex'; }
+    function removeImage(idx) { if(confirm("사진을 삭제할까요?")) { data.images[idx] = null; save(); } }
+    function resizeTitle(el) { if(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }
+
+    function openModal(wIdx) { 
+        currentW = wIdx; 
+        openDays = {}; // 모달 열 때 모든 요일 닫힘 상태로 초기화
+        renderPlanner(wIdx); 
+        document.getElementById('planner-modal').style.display = "block";
+    }
+    
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
-        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 계획`;
+        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 계획 (${getWeekRangeText(data.startDate, wIdx)})`;
         container.innerHTML = dayNames.map((day, dIdx) => {
             const dayData = data.weeks[wIdx].days[dIdx];
             dayData.todos.sort((a,b) => (a.important === b.important ? (a.done === b.done ? 0 : a.done ? 1 : -1) : a.important ? -1 : 1));
+            // 해당 요일의 열림 상태 확인
             const isActive = openDays[dIdx] ? 'active' : '';
-            return `<div class="day-section">
-                <div class="day-header" onclick="toggleDay(${dIdx})"><span>📅 ${day}</span><span>${isActive ? '▲' : '▼'}</span></div>
-                <div class="day-content ${isActive}">
-                    ${dayData.todos.map((t, tIdx) => `<div class="todo-item" style="opacity:${t.done?0.5:1}">
-                        <span class="star-icon ${t.important?'active':''}" onclick="toggleStar(${wIdx},${dIdx},${tIdx})">★</span>
-                        <input type="checkbox" class="todo-check" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})">
-                        <input type="text" class="todo-input" value="${t.text}" oninput="data.weeks[${wIdx}].days[${dIdx}].todos[${tIdx}].text=this.value" style="${t.done?'text-decoration:line-through':''}">
-                        <button class="delete-btn" onclick="deleteTodo(${wIdx},${dIdx},${tIdx})">×</button>
-                    </div>`).join('')}
-                    <input type="text" id="add-${dIdx}" placeholder="+ 할 일 추가 (Enter)" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); margin-top:5px; background:var(--card); color:var(--text);">
-                </div></div>`;
+            return `<div class="day-section"><div class="day-header" onclick="toggleDay(${dIdx})"><span>📅 ${day}</span><span>${isActive ? '▲' : '▼'}</span></div><div class="day-content ${isActive}">${dayData.todos.map((t, tIdx) => `<div class="todo-item" style="${t.done?'opacity:0.5':''}"><span class="star-icon ${t.important?'active':''}" onclick="toggleStar(${wIdx},${dIdx},${tIdx})">★</span><input type="checkbox" class="todo-check" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><input type="text" class="todo-input" value="${t.text}" oninput="editTodo(${wIdx},${dIdx},${tIdx},this.value)" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="${t.done?'text-decoration:line-through':''}"><button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent); cursor:pointer;">×</button></div>`).join('')}<input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 새 계획 (Enter)" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); box-sizing:border-box; margin-top:5px;"></div></div>`;
         }).join('');
     }
 
-    function toggleDay(dIdx) { openDays[dIdx] = !openDays[dIdx]; renderPlanner(currentW); }
-    function openModal(wIdx) { currentW = wIdx; openDays = {}; renderPlanner(wIdx); document.getElementById('planner-modal').style.display = "block"; }
-    function closeModal() { document.getElementById('planner-modal').style.display = "none"; render(); }
+    // 개별 요일을 토글하는 함수 (독립 작동)
+    function toggleDay(dIdx) { 
+        openDays[dIdx] = !openDays[dIdx]; 
+        renderPlanner(currentW); 
+    }
     
-    // 할 일 추가 (엔터 키 대응)
-    function addTodo(wIdx, dIdx) {
-        const input = document.getElementById(`add-${dIdx}`);
-        if(input.value.trim()){
-            data.weeks[wIdx].days[dIdx].todos.push({text: input.value, done: false, important: false});
-            input.value = ''; renderPlanner(wIdx); save();
-        }
+    function closeModal() { document.getElementById('planner-modal').style.display = "none"; openDays = {}; render(); }
+    function addTodo(wIdx, dIdx) { const v = document.getElementById(`in-${wIdx}-${dIdx}`); if(v.value.trim()){ data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false, important: false}); v.value = ''; renderPlanner(wIdx); setTimeout(() => document.getElementById(`in-${wIdx}-${dIdx}`).focus(), 10); } }
+    function toggleTodo(wIdx, dIdx, tIdx) { 
+        data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; 
+        if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); 
+        if(currentW !== null) renderPlanner(currentW);
+        save(); 
     }
-
-    function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); renderPlanner(wIdx); save(); }
     function toggleStar(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].important = !data.weeks[wIdx].days[dIdx].todos[tIdx].important; renderPlanner(wIdx); save(); }
-    function deleteTodo(wIdx, dIdx, tIdx) { if(confirm("삭제할까요?")) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); } }
-
-    function handleImage(idx) { 
-        const i=document.createElement('input'); i.type='file'; 
-        i.onchange=e=>{ 
-            const f=e.target.files[0]; if(f.size > 1.2*1024*1024) { alert("1.2MB 이하 사진만 가능해요!"); return; }
-            const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); 
-        }; i.click(); 
-    }
+    function editTodo(wIdx, dIdx, tIdx, val) { data.weeks[wIdx].days[dIdx].todos[tIdx].text = val; }
+    function deleteTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); }
 
     function archiveSeason() {
-        if(!confirm("이번 기수를 마감할까요?")) return;
-        const snapshot = JSON.parse(JSON.stringify({ season: data.currentSeason, title: data.title, startDate: data.startDate, goals: data.goals, images: data.images, weeks: data.weeks }));
+        if(!confirm(`제 ${data.currentSeason}기를 마감하고 보관함에 저장할까요?`)) return;
+        const snapshot = {
+            season: data.currentSeason, title: data.title, startDate: data.startDate,
+            goals: {...data.goals}, images: [...data.images],
+            weeks: data.weeks.map(w => ({...w, days: w.days.map(d => ({...d, todos: d.todos.map(t => ({...t}))}))}))
+        };
         data.history.unshift(snapshot);
-        data.currentSeason++; data.startDate = new Date().toISOString().split('T')[0];
+        data.currentSeason += 1;
+        data.startDate = new Date().toISOString().split('T')[0];
         data.weeks = Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }));
         confetti(); save();
     }
 
+    function viewHistory(hIdx) {
+        const h = data.history[hIdx];
+        const container = document.getElementById('planner-container');
+        document.getElementById('modal-title').innerText = `제 ${h.season}기 기록: ${h.title}`;
+        let total = 0, done = 0;
+        h.weeks.forEach(w => w.days.forEach(d => { total += d.todos.length; done += d.todos.filter(t => t.done).length; }));
+        const per = total === 0 ? 0 : Math.round((done/total)*100);
+        container.innerHTML = `<div style="text-align:center; padding:15px; background:var(--input-bg); border-radius:15px; margin-bottom:15px;"><div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div></div><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px;">${h.images.map(img => `<div onclick="zoomImage('${img}')" style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee; cursor:pointer;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}</div>${h.weeks.map(w => { const wTasks = w.days.flatMap((d, dIdx) => d.todos.map(t => ({...t, day: dayNames[dIdx]}))); if(wTasks.length === 0) return ''; return `<div class="day-section"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>${w.title} 기록</span><span>▼</span></div><div class="day-content">${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-weight:900; color:var(--primary); min-width:40px;">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}</div></div>`; }).join('')}`;
+        document.getElementById('planner-modal').style.display = "block";
+    }
+
     function render() {
         document.body.setAttribute('data-theme', data.theme);
-        document.getElementById('master-title').value = data.title;
+        const titleInput = document.getElementById('master-title'); 
+        if(titleInput) { titleInput.value = data.title; resizeTitle(titleInput); }
         document.getElementById('start-date').value = data.startDate;
         document.getElementById('season-display').innerText = `제 ${data.currentSeason}기 진행 중`;
-        document.getElementById('goal-long').value = data.goals.long;
-        document.getElementById('goal-three').value = data.goals.three;
-        document.getElementById('goal-twelve').value = data.goals.twelve;
+        document.getElementById('goal-long').value = data.goals.long || "";
+        document.getElementById('goal-three').value = data.goals.three || "";
+        document.getElementById('goal-twelve').value = data.goals.twelve || "";
         
         const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
-        data.images.forEach((img, i) => { gallery.innerHTML += `<div class="vision-card" onclick="${img ? 'zoomImage(this.firstChild.src)' : 'handleImage('+i+')'}">${img ? `<img src="${img}"><div class="img-controls"><button class="img-btn" onclick="event.stopPropagation(); handleImage(${i})">🔄</button></div>` : '+'}</div>`; });
+        data.images.forEach((img, i) => {
+            const div = document.createElement('div');
+            div.className = 'vision-card';
+            if(img) div.innerHTML = `<img src="${img}" onclick="zoomImage('${img}')"><div class="img-controls"><button class="img-btn" onclick="event.stopPropagation(); handleImage(${i})">🔄</button><button class="img-btn" onclick="event.stopPropagation(); removeImage(${i})">🗑️</button></div>`;
+            else { div.innerHTML = '+'; div.onclick = () => handleImage(i); }
+            gallery.appendChild(div);
+        });
         
-        const board = document.getElementById('board'); board.innerHTML = '';
+        const board = document.getElementById('board');
+        board.innerHTML = '';
         let totalAll = 0, doneAll = 0;
         data.weeks.forEach((w, wIdx) => {
             let weekTotal = 0, weekDone = 0; w.days.forEach(d => { weekTotal += d.todos.length; weekDone += d.todos.filter(t => t.done).length; });
@@ -279,37 +307,51 @@
         document.getElementById('total-per-text').innerText = totalRate + '%';
         document.getElementById('main-progress-bar').style.width = totalRate + '%';
         document.getElementById('main-progress-bar').style.backgroundColor = getStatusColor(totalRate);
-        
-        const pending = document.getElementById('pending-container'); pending.innerHTML = '';
-        data.weeks.forEach((w, wIdx) => w.days.forEach((d, dIdx) => d.todos.forEach((t, tIdx) => {
-            if(!t.done) {
-                const item = document.createElement('div'); item.className = 'todo-item';
-                item.innerHTML = `<span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check"><span style="flex:1;">${t.text}</span>`;
-                item.querySelector('input').onclick = () => toggleTodo(wIdx, dIdx, tIdx);
-                pending.appendChild(item);
-            }
-        })));
-        
-        const history = document.getElementById('history-grid'); history.innerHTML = '';
-        data.history.forEach((h, hIdx) => { history.innerHTML += `<div class="block-card"><span>${h.startDate}</span><h3>제 ${h.season}기</h3></div>`; });
-        updateDDay();
+        renderPendingList(); renderHistory(); updateDDay();
     }
 
-    function zoomImage(src) { 
-        const lb = document.createElement('div');
-        lb.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;";
-        lb.innerHTML = `<img src="${src}" style="max-width:90%;max-height:90%;border-radius:15px;border:2px solid white;">`;
-        lb.onclick = () => document.body.removeChild(lb);
-        document.body.appendChild(lb);
+    function renderPendingList() {
+        const container = document.getElementById('pending-container');
+        container.innerHTML = '';
+        data.weeks.forEach((w, wIdx) => {
+            w.days.forEach((d, dIdx) => {
+                d.todos.forEach((t, tIdx) => {
+                    if (!t.done) {
+                        const item = document.createElement('div');
+                        item.className = 'todo-item';
+                        item.innerHTML = `<span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check"><span style="flex:1;">${t.text}</span>`;
+                        item.querySelector('input').onclick = () => toggleTodo(wIdx, dIdx, tIdx);
+                        container.appendChild(item);
+                    }
+                });
+            });
+        });
+        if(container.innerHTML === '') container.innerHTML = '<p style="text-align:center; opacity:0.5;">모든 계획을 완료했습니다! 🎉</p>';
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-grid');
+        container.innerHTML = '';
+        if (data.history.length === 0) { container.innerHTML = '<p style="text-align:center; opacity:0.5; width:100%;">아직 보관된 기록이 없습니다.</p>'; return; }
+        data.history.forEach((h, hIdx) => {
+            let hTotal = 0, hDone = 0; h.weeks.forEach(w => w.days.forEach(d => { hTotal += d.todos.length; hDone += d.todos.filter(t => t.done).length; }));
+            const per = hTotal === 0 ? 0 : Math.round((hDone / hTotal) * 100);
+            const card = document.createElement('div');
+            card.className = 'block-card';
+            card.style.borderColor = getStatusColor(per);
+            card.onclick = () => viewHistory(hIdx);
+            card.innerHTML = `<span class="block-date">${h.startDate}</span><h3>제 ${h.season}기</h3><div style="font-size:1.2em; font-weight:900; color:${getStatusColor(per)};">${per}%</div>`;
+            container.appendChild(card);
+        });
     }
 
     function autoSaveField(f, v) { data[f] = v; save(); }
     function autoSaveGoal(f, v) { data.goals[f] = v; save(); }
-    function resizeTitle(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
     function updateDDay() { const start=new Date(data.startDate); const end=new Date(start); end.setDate(start.getDate()+84); const diff=Math.ceil((end-new Date())/(1000*60*60*24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
     function refreshQuote() { const rq=quotes[Math.floor(Math.random()*quotes.length)]; document.getElementById('quote-display').innerText=`"${rq.q}"`; document.getElementById('quote-author').innerText=`- ${rq.a}`; }
     function toggleTimer() { if(isRunning){ clearInterval(timerInterval); isRunning=false; document.getElementById('timer-btn').innerText="START"; } else { isRunning=true; document.getElementById('timer-btn').innerText="STOP"; timerInterval=setInterval(()=>{ timeLeft--; updateTimerDisp(); if(timeLeft<=0){ clearInterval(timerInterval); alert("집중 끝!"); timeLeft=1500; updateTimerDisp(); isRunning=false; } }, 1000); } }
     function updateTimerDisp() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timer').innerText=`${m}:${s<10?'0':''}${s}`; }
+    function handleImage(idx) { const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const f=e.target.files[0]; if(f.size > 2*1024*1024) { alert("이미지 용량이 너무 큽니다. (2MB 이하 권장)"); return; } const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); }; i.click(); }
     function toggleTheme() { data.theme = data.theme==='dark'?'light':'dark'; save(); }
     function resetAll() { if(confirm("초기화할까요?")){ localStorage.clear(); location.reload(); } }
     refreshQuote(); render();
