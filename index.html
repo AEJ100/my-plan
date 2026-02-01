@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Smart Collector V15.0</title>
+    <title>12-Week Masterpiece: Smart Date V15.5</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -40,8 +40,8 @@
         .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .week-card { background: var(--card); border-radius: 18px; padding: 25px; border: 3px solid var(--border); transition: 0.3s; cursor: pointer; text-align: center; }
         .week-card:hover { transform: translateY(-5px); }
+        .week-date-label { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
 
-        /* 팝업 모달 */
         .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); }
         .modal-content { background: var(--card); margin: 3vh auto; padding: 20px; border-radius: 24px; width: 95%; max-width: 600px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
         
@@ -55,10 +55,12 @@
         .star-icon { cursor: pointer; color: #ccc; } .star-icon.active { color: var(--gold); }
         .todo-check { width: 18px; height: 18px; cursor: pointer; accent-color: var(--success); }
 
-        /* 목표 및 통합 리스트 섹션 */
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; }
         .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 12px; box-sizing: border-box; resize: vertical; min-height: 60px; font-size: 0.95em; margin-bottom: 10px; }
+
+        /* 미완료 리스트 주차 표시 강조 */
+        .pending-tag { font-size: 0.95em; font-weight: 900; color: var(--primary); width: 85px; display: inline-block; background: var(--border); padding: 2px 6px; border-radius: 6px; text-align: center; margin-right: 10px; }
 
         .dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 4000; }
         .dock-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; }
@@ -127,10 +129,9 @@
 
     <div class="week-grid" id="board"></div>
 
-    <details class="vision-section" id="pending-section">
-        <summary>📌 미완료 리스트 모아보기 (체크 시 자동 업데이트)</summary>
-        <div id="pending-container" style="padding: 20px;">
-            </div>
+    <details class="vision-section" id="pending-section" open>
+        <summary>📌 미완료 리스트 모아보기</summary>
+        <div id="pending-container" style="padding: 20px;"></div>
     </details>
 </div>
 
@@ -145,13 +146,10 @@
     const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V15')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V15_5')) || { 
         theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], 
-        weeks: Array.from({length:12}, (_, i) => ({
-            title: (i+1) + "주차",
-            days: Array.from({length:7}, () => ({ todos: [] }))
-        }))
+        weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
     };
     
     let currentW = null, openDayIdx = null, timerInterval, timeLeft = 1500, isRunning = false;
@@ -161,7 +159,7 @@
     auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; loadFromCloud(user.uid); } });
 
     function save() { 
-        localStorage.setItem('12W_V15', JSON.stringify(data)); 
+        localStorage.setItem('12W_V15_5', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) db.collection("users").doc(user.uid).set(data).then(() => { 
             const s=document.getElementById('save-status'); s.style.opacity='1'; setTimeout(()=>s.style.opacity='0',800); 
@@ -172,16 +170,19 @@
     function loadFromCloud(uid) { db.collection("users").doc(uid).get().then(doc => { if(doc.exists){ data=doc.data(); render(); } }); }
     function getStatusColor(per) { if(per >= 100) return 'var(--success)'; if(per >= 70) return 'var(--primary)'; if(per >= 30) return '#ff9500'; return 'var(--border)'; }
 
-    function openModal(wIdx) {
-        currentW = wIdx;
-        const container = document.getElementById('planner-container');
-        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 요일별 계획`;
-        renderPlanner(wIdx);
-        document.getElementById('planner-modal').style.display = "block";
+    // 날짜 계산 함수
+    function getWeekRangeText(wIdx) {
+        const start = new Date(data.startDate);
+        const wStart = new Date(start); wStart.setDate(start.getDate() + (wIdx * 7));
+        const wEnd = new Date(wStart); wEnd.setDate(wStart.getDate() + 6);
+        return `${wStart.getMonth()+1}/${wStart.getDate()} ~ ${wEnd.getMonth()+1}/${wEnd.getDate()}`;
     }
+
+    function openModal(wIdx) { currentW = wIdx; renderPlanner(wIdx); document.getElementById('planner-modal').style.display = "block"; }
 
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
+        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 요일별 계획 (${getWeekRangeText(wIdx)})`;
         container.innerHTML = dayNames.map((day, dIdx) => {
             const dayData = data.weeks[wIdx].days[dIdx];
             dayData.todos.sort((a,b) => (a.important === b.important ? 0 : a.important ? -1 : 1));
@@ -238,7 +239,7 @@
             w.days.forEach(d => { weekTotal += d.todos.length; weekDone += d.todos.filter(t => t.done).length; });
             const per = weekTotal === 0 ? 0 : Math.round((weekDone / weekTotal) * 100);
             totalAll += weekTotal; doneAll += weekDone;
-            board.innerHTML += `<div class="week-card" style="border-color:${getStatusColor(per)}" onclick="openModal(${wIdx})"><h3>${w.title}</h3><div style="font-size:1.5em; font-weight:900; color:${getStatusColor(per)}; margin:10px 0;">${per}%</div><div style="font-size:0.7em; opacity:0.6;">클릭하여 계획 확인</div></div>`;
+            board.innerHTML += `<div class="week-card" style="border-color:${getStatusColor(per)}" onclick="openModal(${wIdx})"><span class="week-date-label">${getWeekRangeText(wIdx)}</span><h3>${w.title}</h3><div style="font-size:1.5em; font-weight:900; color:${getStatusColor(per)}; margin:10px 0;">${per}%</div><div style="font-size:0.7em; opacity:0.6;">클릭하여 계획 확인</div></div>`;
         });
 
         const totalRate = totalAll === 0 ? 0 : Math.round((doneAll / totalAll) * 100);
@@ -247,16 +248,13 @@
         document.getElementById('total-per-text').style.color = c;
         const bar = document.getElementById('main-progress-bar'); bar.style.width = totalRate + '%'; bar.style.backgroundColor = c;
         
-        // 미완료 리스트 수집 및 렌더링
-        renderPendingList();
-        updateDDay();
+        renderPendingList(); updateDDay();
     }
 
     function renderPendingList() {
         const container = document.getElementById('pending-container');
         container.innerHTML = '';
         let hasPending = false;
-
         data.weeks.forEach((w, wIdx) => {
             w.days.forEach((d, dIdx) => {
                 d.todos.forEach((t, tIdx) => {
@@ -264,10 +262,10 @@
                         hasPending = true;
                         container.innerHTML += `
                             <div class="todo-item">
-                                <span style="font-size:0.7em; font-weight:bold; color:var(--primary); width:60px;">${wIdx+1}주-${dayNames[dIdx][0]}</span>
+                                <span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span>
                                 <input type="checkbox" class="todo-check" onclick="toggleTodo(${wIdx},${dIdx},${tIdx})">
-                                <span style="flex:1; font-size:0.9em;">${t.text}</span>
-                                ${t.important ? '<span style="color:var(--gold);">★</span>' : ''}
+                                <span style="flex:1; font-size:1em; font-weight:500;">${t.text}</span>
+                                ${t.important ? '<span style="color:var(--gold); font-size:1.2em;">★</span>' : ''}
                             </div>`;
                     }
                 });
@@ -289,4 +287,3 @@
 </script>
 </body>
 </html>
-
