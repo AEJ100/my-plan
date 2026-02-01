@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Time Machine V17.0</title>
+    <title>12-Week Masterpiece: Perfect Guard V17.3</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -44,15 +44,19 @@
         .block-card h3 { margin: 0; font-size: 1.3em; font-weight: 900; }
         .block-date { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
 
-        /* 사진 확대 라이트박스 보완 */
+        /* 사진 확대 라이트박스 */
         #lightbox { display: none; position: fixed; z-index: 9000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; cursor: zoom-out; }
-        #lightbox img { max-width: 90%; max-height: 90%; border-radius: 15px; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
+        #lightbox img { max-width: 90%; max-height: 90%; border-radius: 15px; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
 
-        /* 목표 입력창 글자 크기 보완 */
+        /* 목표 섹션 및 아코디언 */
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 2px solid var(--border); border-radius: 12px; color: var(--text); padding: 18px; box-sizing: border-box; resize: vertical; min-height: 90px; font-size: 1.3em; font-weight: 800; line-height: 1.5; }
+        
+        .goal-accordion { margin: 10px 20px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .goal-accordion summary { padding: 10px 15px; background: var(--input-bg); color: var(--primary); font-weight: 900; font-size: 1em; }
+        .goal-textarea { width: 100%; background: var(--card); border: none; color: var(--text); padding: 18px; box-sizing: border-box; resize: vertical; min-height: 100px; font-size: 1.4em; font-weight: 800; line-height: 1.5; outline: none; }
 
+        /* 모달 스타일 */
         .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); }
         .modal-content { background: var(--card); margin: 3vh auto; padding: 20px; border-radius: 24px; width: 95%; max-width: 600px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
         
@@ -64,7 +68,7 @@
         .todo-item { display: flex; align-items: center; background: var(--card); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; gap: 8px; border: 1px solid var(--border); }
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-size: 1em; }
         .star-icon { cursor: pointer; color: #ccc; } .star-icon.active { color: var(--gold); }
-        .todo-check { width: 18px; height: 18px; cursor: pointer; accent-color: var(--success); }
+        .todo-check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--success); }
 
         .pending-tag { font-size: 0.95em; font-weight: 900; color: var(--primary); width: 85px; display: inline-block; background: var(--border); padding: 2px 6px; border-radius: 6px; text-align: center; margin-right: 10px; }
 
@@ -81,7 +85,7 @@
 
 <div id="planner-modal" class="modal">
     <div class="modal-content">
-        <h2 id="modal-title" style="margin-top:0; color:var(--primary); text-align: center;">기수 정보</h2>
+        <h2 id="modal-title" style="margin-top:0; color:var(--primary); text-align: center;">계획 정보</h2>
         <div id="planner-container"></div>
         <button style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:18px; font-weight:900; cursor:pointer; margin-top:10px;" onclick="closeModal()">닫기</button>
     </div>
@@ -113,12 +117,10 @@
         </div>
         <div class="dual-card">
             <div class="timer-part">
-                <div style="font-size:0.7em; font-weight:800;">집중 타이머</div>
                 <div id="timer" class="mini-display">25:00</div>
                 <button onclick="toggleTimer()" id="timer-btn" style="background:white; color:var(--primary); border:none; border-radius:5px; font-size:0.6em; cursor:pointer; font-weight:bold; padding:3px 8px;">START</button>
             </div>
             <div class="progress-part">
-                <div style="font-size:0.7em; font-weight:800; color:var(--quote-sub)">전체 성공률</div>
                 <div id="total-per-text" class="mini-display">0%</div>
                 <div class="progress-bar-container"><div id="main-progress-bar" class="progress-bar-fill"></div></div>
             </div>
@@ -129,15 +131,23 @@
 
     <details class="vision-section" open>
         <summary>🖼️ 비전 보드 & 핵심 목표</summary>
-        <div style="padding: 20px;">
-            <div id="vision-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;"></div>
+        <div style="padding: 20px 0;">
+            <div id="vision-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 20px 20px;"></div>
             
-            <span style="font-weight:900; color:var(--primary); display:block; margin:15px 0 5px;">✨ 원대한 장기목표</span>
-            <textarea id="goal-long" class="goal-textarea" oninput="autoSaveGoal('long', this.value)"></textarea>
-            <span style="font-weight:900; color:var(--primary); display:block; margin:5px 0 5px;">🎯 3년 중기목표</span>
-            <textarea id="goal-three" class="goal-textarea" oninput="autoSaveGoal('three', this.value)"></textarea>
-            <span style="font-weight:900; color:var(--primary); display:block; margin:5px 0 5px;">🚀 12주 목표</span>
-            <textarea id="goal-twelve" class="goal-textarea" oninput="autoSaveGoal('twelve', this.value)"></textarea>
+            <details class="goal-accordion" open>
+                <summary>✨ 원대한 장기목표</summary>
+                <textarea id="goal-long" class="goal-textarea" placeholder="나의 가장 큰 꿈을 적어보세요" oninput="autoSaveGoal('long', this.value)"></textarea>
+            </details>
+            
+            <details class="goal-accordion" open>
+                <summary>🎯 3년 중기목표</summary>
+                <textarea id="goal-three" class="goal-textarea" placeholder="3년 뒤 나의 모습은?" oninput="autoSaveGoal('three', this.value)"></textarea>
+            </details>
+            
+            <details class="goal-accordion" open>
+                <summary>🚀 12주 목표</summary>
+                <textarea id="goal-twelve" class="goal-textarea" placeholder="이번 12주 동안 이룰 것은?" oninput="autoSaveGoal('twelve', this.value)"></textarea>
+            </details>
         </div>
     </details>
 
@@ -165,7 +175,7 @@
     const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V17')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V17_3')) || { 
         theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], 
         currentSeason: 1, history: [],
@@ -179,7 +189,7 @@
     auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; loadFromCloud(user.uid); } });
 
     function save() { 
-        localStorage.setItem('12W_V17', JSON.stringify(data)); 
+        localStorage.setItem('12W_V17_3', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) db.collection("users").doc(user.uid).set(data).then(() => { 
             const s=document.getElementById('save-status'); s.style.opacity='1'; setTimeout(()=>s.style.opacity='0',800); 
@@ -196,53 +206,34 @@
         return `${wStart.getMonth()+1}/${wStart.getDate()} ~ ${wEnd.getMonth()+1}/${wEnd.getDate()}`;
     }
 
-    // 사진 확대 마법 기능
-    function zoomImage(src) {
-        if(!src) return;
-        document.getElementById('lightbox-img').src = src;
-        document.getElementById('lightbox').style.display = 'flex';
-    }
+    function zoomImage(src) { if(!src) return; document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').style.display = 'flex'; }
 
     function archiveSeason() {
-        if(!confirm(`제 ${data.currentSeason}기를 마감하고 보관함에 저장할까요?`)) return;
-        const record = {
-            season: data.currentSeason,
-            title: data.title,
-            startDate: data.startDate,
-            goals: JSON.parse(JSON.stringify(data.goals)),
-            images: JSON.parse(JSON.stringify(data.images)),
-            weeks: JSON.parse(JSON.stringify(data.weeks))
-        };
-        data.history.unshift(record);
-        data.currentSeason += 1;
-        data.startDate = new Date().toISOString().split('T')[0];
+        if(!confirm(`제 ${data.currentSeason}기를 마감할까요?`)) return;
+        data.history.unshift({ season: data.currentSeason, title: data.title, startDate: data.startDate, goals: JSON.parse(JSON.stringify(data.goals)), images: JSON.parse(JSON.stringify(data.images)), weeks: JSON.parse(JSON.stringify(data.weeks)) });
+        data.currentSeason += 1; data.startDate = new Date().toISOString().split('T')[0];
         data.weeks = Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }));
         confetti(); save();
     }
 
     function openModal(wIdx) { currentW = wIdx; renderPlanner(wIdx); document.getElementById('planner-modal').style.display = "block"; }
-
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
-        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 요일별 계획 (${getWeekRangeText(data.startDate, wIdx)})`;
+        document.getElementById('modal-title').innerText = `${wIdx + 1}주 계획 (${getWeekRangeText(data.startDate, wIdx)})`;
         container.innerHTML = dayNames.map((day, dIdx) => {
             const dayData = data.weeks[wIdx].days[dIdx];
-            dayData.todos.sort((a,b) => (a.important === b.important ? 0 : a.important ? -1 : 1));
             const isActive = openDayIdx === dIdx ? 'active' : '';
-            return `
-                <div class="day-section">
-                    <div class="day-header" onclick="toggleDay(${dIdx})"><span>📅 ${day}</span><span>${isActive ? '▲' : '▼'}</span></div>
-                    <div class="day-content ${isActive}">
-                        <div>${dayData.todos.map((t, tIdx) => `
-                            <div class="todo-item" style="${t.done?'opacity:0.5':''}">
-                                <span class="star-icon ${t.important?'active':''}" onclick="toggleStar(${wIdx},${dIdx},${tIdx})">★</span>
-                                <input type="checkbox" class="todo-check" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})">
-                                <input type="text" class="todo-input" value="${t.text}" oninput="editTodo(${wIdx},${dIdx},${tIdx},this.value)" style="${t.done?'text-decoration:line-through':''}">
-                                <button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent); cursor:pointer;">×</button>
-                            </div>`).join('')}</div>
-                        <input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 추가" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); box-sizing:border-box;">
-                    </div>
-                </div>`;
+            return `<div class="day-section">
+                <div class="day-header" onclick="toggleDay(${dIdx})"><span>📅 ${day}</span><span>${isActive ? '▲' : '▼'}</span></div>
+                <div class="day-content ${isActive}">
+                    ${dayData.todos.map((t, tIdx) => `<div class="todo-item" style="${t.done?'opacity:0.5':''}">
+                        <input type="checkbox" style="width:20px; height:20px;" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})">
+                        <input type="text" class="todo-input" value="${t.text}" oninput="editTodo(${wIdx},${dIdx},${tIdx},this.value)" style="${t.done?'text-decoration:line-through':''}">
+                        <button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent); cursor:pointer;">×</button>
+                    </div>`).join('')}
+                    <input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 추가" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); box-sizing:border-box;">
+                </div>
+            </div>`;
         }).join('');
     }
 
@@ -252,37 +243,20 @@
         document.getElementById('modal-title').innerText = `제 ${h.season}기 기록: ${h.title}`;
         let total = 0, done = 0; h.weeks.forEach(w => w.days.forEach(d => { total += d.todos.length; done += d.todos.filter(t => t.done).length; }));
         const per = total === 0 ? 0 : Math.round((done/total)*100);
-
-        container.innerHTML = `
-            <div style="text-align:center; margin-bottom:20px; background:var(--input-bg); padding:15px; border-radius:15px;">
-                <div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div>
-                <div style="font-size:0.8em; opacity:0.7;">${h.startDate} 시작</div>
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px;">
-                ${h.images.map(img => `<div onclick="zoomImage('${img}')" style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee; cursor:pointer;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}
-            </div>
-            ${h.weeks.map((w, wIdx) => {
+        container.innerHTML = `<div style="text-align:center; padding:15px; background:var(--input-bg); border-radius:15px; margin-bottom:15px;"><div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div></div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px;">${h.images.map(img => `<div onclick="zoomImage('${img}')" style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee; cursor:pointer;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}</div>
+            ${h.weeks.map(w => {
                 const wTasks = w.days.flatMap((d, dIdx) => d.todos.map(t => ({...t, day: dayNames[dIdx]})));
                 if(wTasks.length === 0) return '';
-                return `
-                    <div class="day-section">
-                        <div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')">
-                            <span>${w.title} 기록</span><span>▼</span>
-                        </div>
-                        <div class="day-content">
-                            ${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-size:0.7em; font-weight:bold; color:var(--primary); min-width:30px;">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}
-                        </div>
-                    </div>`;
-            }).join('')}
-        `;
+                return `<div class="day-section"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>${w.title}</span><span>▼</span></div><div class="day-content">${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-weight:900; color:var(--primary); min-width:40px;">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}</div></div>`;
+            }).join('')}`;
         document.getElementById('planner-modal').style.display = "block";
     }
 
     function toggleDay(dIdx) { openDayIdx = (openDayIdx === dIdx) ? null : dIdx; renderPlanner(currentW); }
     function closeModal() { document.getElementById('planner-modal').style.display = "none"; openDayIdx = null; render(); }
-    function addTodo(wIdx, dIdx) { const v = document.getElementById(`in-${wIdx}-${dIdx}`); if(v.value.trim()){ data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false, important: false}); v.value = ''; renderPlanner(wIdx); } }
+    function addTodo(wIdx, dIdx) { const v = document.getElementById(`in-${wIdx}-${dIdx}`); if(v.value.trim()){ data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false}); v.value = ''; renderPlanner(wIdx); } }
     function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); if(currentW !== null) renderPlanner(wIdx); save(); }
-    function toggleStar(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].important = !data.weeks[wIdx].days[dIdx].todos[tIdx].important; renderPlanner(wIdx); save(); }
     function editTodo(wIdx, dIdx, tIdx, val) { data.weeks[wIdx].days[dIdx].todos[tIdx].text = val; }
     function deleteTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); }
 
@@ -321,7 +295,7 @@
             w.days.forEach((d, dIdx) => {
                 d.todos.forEach((t, tIdx) => {
                     if (!t.done) {
-                        container.innerHTML += `<div class="todo-item"><span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check" onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><span style="flex:1; font-size:1em; font-weight:500;">${t.text}</span>${t.important ? '<span style="color:var(--gold);">★</span>' : ''}</div>`;
+                        container.innerHTML += `<div class="todo-item"><span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check" onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><span style="flex:1; font-size:1em; font-weight:500;">${t.text}</span></div>`;
                     }
                 });
             });
@@ -330,7 +304,7 @@
 
     function renderHistory() {
         const container = document.getElementById('history-grid'); container.innerHTML = '';
-        if (data.history.length === 0) { container.innerHTML = '<p style="text-align:center; opacity:0.5; width:100%;">아직 보관된 기수가 없습니다.</p>'; return; }
+        if (data.history.length === 0) { container.innerHTML = '<p style="text-align:center; opacity:0.5; width:100%;">보관된 기록이 없습니다.</p>'; return; }
         data.history.forEach((h, hIdx) => {
             let hTotal = 0, hDone = 0; h.weeks.forEach(w => w.days.forEach(d => { hTotal += d.todos.length; hDone += d.todos.filter(t => t.done).length; }));
             const per = hTotal === 0 ? 0 : Math.round((hDone / hTotal) * 100);
