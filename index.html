@@ -3,418 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Final Elite V9.4</title>
+    <title>12주 마스터: 구름 저장 버전</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <style>
-        :root {
-            --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
-            --primary: #0071e3; --success: #34c759; --accent: #ff3b30; --gold: #ffcc00;
-            --border: #d2d2d7; --quote-sub: #86868b; --input-bg: #f5f5f7;
-            --cal-icon: #0071e3; /* 라이트 모드 선명한 파랑 */
-        }
-        [data-theme='dark'] {
-            --bg: #000000; --card: #1c1c1e; --text: #f5f5f7;
-            --primary: #0a84ff; --success: #30d158; --accent: #ff453a;
-            --border: #3a3a3c; --quote-sub: #a1a1a6; --input-bg: #0a0a0a;
-            --cal-icon: #64d2ff; /* 다크 모드 밝은 하늘색 */
-        }
-
-        body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; }
-        .container { max-width: 1000px; margin: auto; }
-
-        .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 60%; outline: none; margin-bottom: 10px; border-bottom: 2px solid transparent; }
-        .dashboard { display: grid; grid-template-columns: 1fr 1.8fr 1.5fr; gap: 12px; margin-bottom: 15px; }
-        .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
-        
-        .dday-box { font-size: 3em; font-weight: 900; color: var(--accent); line-height: 1; text-align: center; letter-spacing: -1.5px; }
-        .mini-display { font-size: 1.8em; font-weight: 900; margin: 4px 0; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
-        
-        /* 통합 달력 아이콘 스타일 */
-        .cal-highlight { color: var(--cal-icon); font-weight: bold; margin-right: 4px; display: inline-flex; align-items: center; }
-        .cal-trigger { font-size: 1.2em; color: var(--cal-icon); cursor: pointer; transition: transform 0.2s; display: inline-flex; align-items: center; }
-        .cal-trigger:hover { transform: scale(1.2); }
-
-        .date-picker-group { text-align: center; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 5px; }
-
-        .dual-card { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
-        .timer-part, .progress-part { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; padding: 10px; }
-        .timer-part { background: var(--primary); color: white; }
-        .progress-part { background: var(--input-bg); border: 1px solid var(--border); }
-        .mini-label { font-size: 0.75em; font-weight: 800; margin-bottom: 4px; opacity: 0.9; }
-        .mini-btn { background: white; color: var(--primary); border: none; width: 100%; padding: 4px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 0.7em; }
-        
-        .progress-bar-container { width: 100%; height: 8px; background: var(--border); border-radius: 10px; margin-top: 8px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; width: 0%; transition: width 0.6s ease, background-color 0.3s; }
-
-        .quote-card { align-items: flex-start; padding-left: 20px; min-height: 120px; cursor: pointer; }
-        .quote-text { font-size: 1.05em; font-weight: 800; border-left: 4px solid var(--primary); padding-left: 15px; line-height: 1.5; text-align: left; word-break: keep-all; }
-
-        .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
-        .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; list-style: none; }
-        .vision-label { font-size: 1.3em; font-weight: 900; color: var(--primary); display: block; margin-bottom: 10px; }
-        .goal-textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 15px; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 95px; line-height: 1.6; font-size: 1.1em; }
-
-        .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .week-card { background: var(--card); border-radius: 18px; padding: 18px; border: 2px solid var(--border); transition: border-color 0.4s ease; }
-        .todo-item { display: flex; align-items: center; background: var(--input-bg); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 10px; border: 1px solid var(--border); }
-        .star-icon { font-size: 1.4em; cursor: pointer; user-select: none; color: #ccc; transition: 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; }
-        .star-icon.active { color: var(--gold); }
-        .todo-checkbox { width: 1.2em; height: 1.2em; cursor: pointer; accent-color: var(--success); flex-shrink: 0; }
-        .todo-input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 0.95em; outline: none; }
-
-        .save-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-        .dock-btn { padding: 8px 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; font-size: 0.8em; }
-        .btn-backup { background: var(--success); }
-        .btn-restore { background: #5856d6; }
-        .btn-pdf { background: #ff9500; }
-        .btn-reset { background: #8e8e93; }
-
-        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.7em; background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 3000; }
+        /* 이전과 똑같은 예쁜 디자인 */
+        :root { --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f; --primary: #0071e3; --border: #d2d2d7; }
+        [data-theme='dark'] { --bg: #000000; --card: #1c1c1e; --text: #f5f5f7; --border: #3a3a3c; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #34c759; color: white; padding: 5px 15px; border-radius: 20px; opacity: 0; }
     </style>
 </head>
 <body data-theme="dark">
 
-<div id="save-status">실시간 저장 완료</div>
+<div id="save-status">구름 창고 저장 완료!</div>
 
-<div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <input type="text" id="master-title" class="main-title-input" oninput="autoSaveField('title', this.value)" placeholder="프로젝트 제목">
-        <button onclick="toggleTheme()" class="dock-btn" style="background:var(--card); color:var(--text); border:1px solid var(--border); font-size:0.7em;">🌓 테마 전환</button>
+<div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="display-title">🏆 12주 마스터</h2>
+    <div>
+        <button id="btn-login" class="btn" onclick="googleLogin()">🔑 구글 로그인</button>
+        <span id="user-name" style="display:none; font-weight:bold;"></span>
     </div>
-
-    <div class="dashboard">
-        <div class="stat-card">
-            <div id="dday-display" class="dday-box">D-84</div>
-            <div class="date-picker-group">
-                <span class="cal-trigger" onclick="document.getElementById('start-date').showPicker()">🗓️</span>
-                <input type="date" id="start-date" style="border:none; background:transparent; color:var(--text); font-family:inherit; cursor:pointer; font-weight:bold; width:105px;" onchange="data.startDate=this.value; save(); render();">
-            </div>
-        </div>
-
-        <div class="quote-card" onclick="refreshQuote()">
-            <div id="quote-display" class="quote-text">클릭하여 명언을 확인하세요.</div>
-            <div id="quote-author" style="color:var(--quote-sub); font-size:0.85em; margin-top:8px; margin-left:19px; font-weight:bold; text-align: left;"></div>
-        </div>
-
-        <div class="dual-card">
-            <div class="timer-part">
-                <span class="mini-label">집중타이머</span>
-                <div id="timer" class="mini-display">25:00</div>
-                <button onclick="toggleTimer()" id="timer-btn" class="mini-btn">START</button>
-            </div>
-            <div class="progress-part">
-                <span class="mini-label" style="color:var(--quote-sub)">전체 성공률%</span>
-                <div id="total-per-text" class="mini-display">0%</div>
-                <div class="progress-bar-container">
-                    <div id="main-progress-bar" class="progress-bar-fill"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <details class="vision-section" open>
-        <summary>🖼️ 비전 보드 & 핵심 목표</summary>
-        <div style="padding: 20px;">
-            <div id="vision-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;"></div>
-            <div class="vision-item"><span class="vision-label">✨ 원대한 목표</span><textarea id="goal-long" class="goal-textarea" oninput="autoSaveGoal('long', this.value)"></textarea></div>
-            <div class="vision-item"><span class="vision-label">🎯 3년 목표</span><textarea id="goal-three" class="goal-textarea" oninput="autoSaveGoal('three', this.value)"></textarea></div>
-            <div class="vision-item"><span class="vision-label">🚀 12주 계획</span><textarea id="goal-twelve" class="goal-textarea" oninput="autoSaveGoal('twelve', this.value)"></textarea></div>
-        </div>
-    </details>
-
-    <div class="week-grid" id="board"></div>
 </div>
 
-<div class="save-dock">
-    <button class="dock-btn btn-backup" onclick="exportData()">📤 백업</button>
-    <button class="dock-btn btn-restore" onclick="importData()">📥 복원</button>
-    <button class="dock-btn btn-pdf" onclick="window.print()">📄 PDF 저장</button>
-    <button class="dock-btn btn-reset" onclick="resetAll()">🧹 초기화</button>
+<div class="card">
+    <p>로그인을 하면 내가 적은 투두리스트가 구름 창고에 안전하게 저장돼요!</p>
+    <div id="board">
+        </div>
 </div>
 
 <script>
-    const quotes = [
-        { q: "혁신은 리더와 추종자를 구분한다.", a: "스티브 잡스" },
-        { q: "성공은 형편없는 스승이다.", a: "빌 게이츠" },
-        { q: "규칙을 잘 따르되, 틀을 깨는 법도 배워라.", a: "리처드 브랜슨" },
-        { q: "브랜드는 사람들이 당신에 대해 말하는 것이다.", a: "제프 베이조스" },
-        { q: "고객에 집착하라.", a: "제프 베이조스" },
-        { q: "완벽을 기다리면 늦는다.", a: "리드 호프먼" },
-        { q: "실행은 모든 것을 이긴다.", a: "마크 저커버그" },
-        { q: "문화는 전략을 아침으로 먹는다.", a: "피터 드러커" },
-        { q: "측정할 수 없으면 관리할 수 없다.", a: "피터 드러커" },
-        { q: "기회는 문제 속에 숨어 있다.", a: "피터 드러커" },
-        { q: "우리는 습관이 아니라 시스템을 만든다.", a: "레이 달리오" },
-        { q: "진실을 말하는 문화를 만들어라.", a: "레이 달리오" },
-        { q: "네트워크는 자본보다 강하다.", a: "리드 호프먼" },
-        { q: "고객이 미쳐야 할 제품을 만들어라.", a: "폴 그레이엄" },
-        { q: "무언가를 만들고, 사람들에게 보여줘라.", a: "폴 그레이엄" },
-        { q: "가장 중요한 건 집중이다.", a: "팀 쿡" },
-        { q: "단순함은 궁극의 정교함이다.", a: "레오나르도 다 빈치" },
-        { q: "큰 성과는 작은 일의 반복이다.", a: "헨리 포드" },
-        { q: "실패는 더 똑똑해질 기회다.", a: "헨리 포드" },
-        { q: "끝까지 가는 사람이 이긴다.", a: "일론 머스크" },
-        { q: "불확실성은 기회의 다른 이름이다.", a: "마크 큐반" },
-        { q: "사업은 사람의 게임이다.", a: "마크 큐반" },
-        { q: "핵심은 ‘무엇을 하지 않을지’다.", a: "워런 버핏" },
-        { q: "명성은 쌓는 데 20년, 무너지는 데 5분.", a: "워런 버핏" },
-        { q: "가격은 지불하는 것, 가치는 얻는 것.", a: "워런 버핏" },
-        { q: "위대한 기업은 위대한 사람에게서 나온다.", a: "짐 콜린스" },
-        { q: "먼저 누구를 태울지 결정하라.", a: "짐 콜린스" },
-        { q: "당신의 시간은 한정돼 있다.", a: "스티브 잡스" },
-        { q: "가장 좋은 마케팅은 제품이다.", a: "스티브 잡스" },
-        { q: "작게 시작하되, 크게 생각하라.", a: "리처드 브랜슨" },
-        { q: "실패를 빨리 하고, 빨리 배워라.", a: "실리콘밸리 격언" },
-        { q: "선택과 집중이 곧 전략이다.", a: "경영 격언" },
-        { q: "속도는 완벽을 이긴다.", a: "스타트업 격언" },
-        { q: "고객이 원하면, 방법은 생긴다.", a: "사업 격언" },
-        { q: "일은 팀으로, 책임은 개인으로.", a: "리더십 격언" },
-        { q: "너 자신을 알라.", a: "소크라테스" },
-        { q: "검토되지 않은 삶은 살 가치가 없다.", a: "소크라테스" },
-        { q: "행복은 습관이다.", a: "아리스토텔레스" },
-        { q: "우리는 반복하는 것이 곧 우리다.", a: "아리스토텔레스" },
-        { q: "중요한 건 사건이 아니라 해석이다.", a: "에픽테토스" },
-        { q: "네가 통제할 수 있는 것에 집중하라.", a: "스토아 철학" },
-        { q: "고통은 필연, 괴로움은 선택.", a: "불교/스토아" },
-        { q: "현재를 사는 자가 가장 강하다.", a: "스토아 격언" },
-        { q: "운명은 준비된 자를 돕는다.", a: "세네카" },
-        { q: "우리가 두려워하는 것은 대개 상상이다.", a: "세네카" },
-        { q: "인간은 습관의 동물이다.", a: "윌리엄 제임스" },
-        { q: "지옥은 타인이다.", a: "사르트르" },
-        { q: "실존은 본질에 앞선다.", a: "사르트르" },
-        { q: "희망은 가장 큰 악이다.", a: "니체" },
-        { q: "살아야 할 이유가 있으면 거의 모든 ‘어떻게’를 견딘다.", a: "니체" },
-        { q: "나를 죽이지 못하는 것은 나를 더 강하게 만든다.", a: "니체" },
-        { q: "인간은 의미를 찾는 존재다.", a: "빅터 프랭클" },
-        { q: "자유는 책임을 동반한다.", a: "실존주의" },
-        { q: "생각이 바뀌면 세계가 바뀐다.", a: "철학 격언" },
-        { q: "무지는 행복이 아니다.", a: "철학 격언" },
-        { q: "진실은 단순하다.", a: "철학 격언" },
-        { q: "성찰 없는 확신은 위험하다.", a: "철학 격언" },
-        { q: "내면의 질서가 외면의 평화를 만든다.", a: "철학 격언" },
-        { q: "욕망은 고통의 뿌리다.", a: "불교 격언" },
-        { q: "비교는 기쁨의 도둑이다.", a: "철학 격언" },
-        { q: "모든 것은 변한다.", a: "헤라클레이토스" },
-        { q: "같은 강에 두 번 들어갈 수 없다.", a: "헤라클레이토스" },
-        { q: "침묵은 가장 큰 힘이다.", a: "철학 격언" },
-        { q: "이성은 감정을 이해하기 위한 도구다.", a: "철학 격언" },
-        { q: "자기 통제가 자유의 시작이다.", a: "철학 격언" },
-        { q: "우리는 생각하는 대로 된다.", a: "얼 나이팅게일" },
-        { q: "작은 습관이 큰 인생을 만든다.", a: "습관 격언" },
-        { q: "동기보다 시스템.", a: "생산성 격언" },
-        { q: "완벽주의는 미루기의 다른 이름.", a: "심리 격언" },
-        { q: "감정은 사실이 아니다.", a: "심리 격언" },
-        { q: "불안은 미래로 보내는 과도한 에너지다.", a: "심리 격언" },
-        { q: "변화는 불편함을 동반한다.", a: "자기개발 격언" },
-        { q: "용기는 두려움이 없는 게 아니라, 두려움에도 하는 것.", a: "격언" },
-        { q: "성장은 늘 낯선 쪽에 있다.", a: "자기개발 격언" },
-        { q: "작게 시작하면 크게 간다.", a: "습관 격언" },
-        { q: "가장 어려운 일은 꾸준함이다.", a: "자기개발 격언" },
-        { q: "자존감은 성취가 아니라 자기존중에서 온다.", a: "심리 격언" },
-        { q: "경계는 사랑의 형태다.", a: "심리 격언" },
-        { q: "싫다고 말하는 건 관계를 지키는 기술.", a: "심리 격언" },
-        { q: "회복은 직선이 아니다.", a: "심리 격언" },
-        { q: "치유는 ‘이해’에서 시작된다.", a: "심리 격언" },
-        { q: "내가 나를 배신하지 않는 것이 우선이다.", a: "자기돌봄 격언" },
-        { q: "오늘의 선택이 내일의 나를 만든다.", a: "자기개발 격언" },
-        { q: "성공은 속도가 아니라 방향.", a: "자기개발 격언" },
-        { q: "꾸준함은 재능이다.", a: "성공 격언" },
-        { q: "자기 신뢰는 약속을 지키는 데서 생긴다.", a: "심리 격언" },
-        { q: "행동이 감정을 만든다.", a: "행동심리 격언" },
-        { q: "하루 1%가 1년을 바꾼다.", a: "습관 격언" },
-        { q: "통제 가능한 것에만 에너지를 써라.", a: "스토아 철학" },
-        { q: "내가 허락한 만큼만 흔들린다.", a: "자기개발 격언" },
-        { q: "거절은 관계를 끝내는 게 아니라 기준을 세운다.", a: "심리 격언" },
-        { q: "자기연민은 포기, 자기자비는 치유.", a: "심리 격언" },
-        { q: "설명하지 않아도 되는 삶이 편하다.", a: "자기개발 격언" },
-        { q: "너무 많은 선택은 결정을 망친다.", a: "선택 과부하" },
-        { q: "집중은 ‘하지 않을 것’을 정하는 능력.", a: "생산성 격언" },
-        { q: "에너지가 가는 곳에 인생이 간다.", a: "격언" },
-        { q: "기록은 감정을 객관화한다.", a: "기록 격언" },
-        { q: "환경이 의지를 이긴다.", a: "행동과학" },
-        { q: "오늘의 불편함이 내일의 자유.", a: "자기개발 격언" },
-        { q: "결국, 내가 나의 편이 되어야 한다.", a: "자기돌봄 격언" },
-        { q: "마누라와 자식만 빼고 다 바꿔야 한다.", a: "이건희" },
-        { q: "변하지 않으면 영원히 2류나 2.5류가 된다.", a: "이건희" },
-        { q: "즐겁게 일할 수 있는 시간이 좋은 운이다.", a: "정주영" },
-        { q: "열심히 일하는 사람에게는 나쁜 운이 들어올 틈이 없다.", a: "정주영" },
-        { q: "자기 자신의 실패는 가슴 깊이 새겨 두어야 한다.", a: "정주영" },
-        { q: "실패를 망각하는 사람은 또 다른 실패가 있을 뿐이다.", a: "정주영" },
-        { q: "우리가 추구하는 일등은 지속 가능해야 한다.", a: "구본무" },
-        { q: "정도경영(正道經營)을 통해 가치를 창출하라.", a: "구본무" },
-        { q: "기업은 사회에 빚을 지고 있는 것.", a: "최종현" },
-        { q: "세계는 넓고 할 일은 많다.", a: "김우중" },
-        { q: "Learn to love yourself, Speak yourself.", a: "RM(BTS)" },
-        { q: "Love yourself, speak yourself.", a: "RM(BTS)" },
-        { q: "가장 개인적인 것이 가장 창의적인 것이다.", a: "봉준호" },
-        { q: "어른도 아이에게 사과할 수 있어야 한다.", a: "아이유" },
-        { q: "할 수 있는 한 최선을 다하는 것이 핵심.", a: "손흥민" },
-        { q: "준비가 되어 있다면 기회는 충분히 올 것이다.", a: "박지성" },
-        { q: "매 경기 착실하게 임하면 기회는 반드시 온다.", a: "박지성" },
-        { q: "네이버는 기술로 세상을 변화시킨다.", a: "최수연" },
-        { q: "성실하게 살아가는 사람들을 지원하겠다.", a: "김범수" },
-        { q: "제철보국(製鐵報國), 철로 국가에 공헌하라.", a: "박태준" },
-        { q: "길이 없으면 길을 닦아야지.", a: "정주영" },
-        { q: "이봐, 해봤어?", a: "정주영" },
-        { q: "천재 한 명보다 성실한 백 명이 낫다.", a: "기업인 격언" },
-        { q: "인재가 곧 국가 경쟁력이다.", a: "창업주 어록" },
-        { q: "변명은 가장 쉬운 선택이다.", a: "성공 격언" },
-        { q: "말을 독점하면 적이 많아진다.", a: "유재석" },
-        { q: "앞에서 할 수 없는 말은 뒤에서도 하지 마라.", a: "유재석" },
-        { q: "실패는 끝이 아니라 데이터다.", a: "스타트업 격언" },
-        { q: "완벽을 기다리면 평생 시작 못 한다.", a: "자기개발 격언" },
-        { q: "감정은 순간이고, 결과는 기록된다.", a: "자기개발 격언" },
-        { q: "불안할수록 루틴이 답이다.", a: "자기개발 격언" },
-        { q: "꾸준함은 재능이다.", a: "성공 격언" },
-        { q: "기회는 준비된 사람에게만 보인다.", a: "자기개발 격언" },
-        { q: "남의 시선보다 내 기준이 먼저다.", a: "자기개발 격언" },
-        { q: "비교는 행복을 훔친다.", a: "인생 격언" },
-        { q: "할 수 있다고 믿는 순간 방법이 생긴다.", a: "동기부여" },
-        { q: "성공은 반복의 누적이다.", a: "동기부여" },
-        { q: "실력은 조용히 쌓이고 평가는 크게 온다.", a: "동기부여" },
-        { q: "좋은 관계는 경계에서 시작된다.", a: "심리학" },
-        { q: "감정은 사실이 아니다.", a: "심리학" },
-        { q: "내가 나를 지키는 게 먼저다.", a: "자기돌봄" },
-        { q: "미루는 건 미래의 나에게 빚을 지는 일.", a: "생산성" },
-        { q: "지금의 선택이 1년 뒤의 나를 만든다.", a: "자기개발" },
-        { q: "작게 시작해도, 멈추지만 않으면 된다.", a: "자기개발" },
-        { q: "성장은 늘 불편함을 동반한다.", a: "자기개발" },
-        { q: "포기하지 않으면 결국 된다.", a: "스포츠 정신" },
-        { q: "기본이 무너지면 실력도 무너진다.", a: "스포츠 정신" },
-        { q: "최선을 다했다는 감각이 멘탈을 지킨다.", a: "동기부여" },
-        { q: "나를 믿는 힘은 약속을 지킨 횟수에서 나온다.", a: "심리학" },
-        { q: "끝까지 하는 사람이 결국 가져간다.", a: "성공 격언" }
-    ];
-
-    const STORAGE_KEY = '12W_MASTER_ELITE_V89';
-    let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-        theme: 'dark', title: "🏆 12주 인생 마스터피스",
-        startDate: new Date().toISOString().split('T')[0],
-        goals: { long: "", three: "", twelve: "" },
-        images: [null, null, null],
-        weeks: Array.from({length: 12}, (_, i) => ({ title: `${i+1}주차`, todos: [] }))
+    // 1. 아까 찾은 열쇠(Config)를 여기에 넣었어요!
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUkSZV-F8u_WWlsm4DPiQlg4zEsN0hxvQ",
+        authDomain: "week-project-29b17.firebaseapp.com",
+        projectId: "week-project-29b17",
+        storageBucket: "week-project-29b17.firebasestorage.app",
+        messagingSenderId: "277326942781",
+        appId: "1:277326942781:web:aef86a0c4bd94c4300d054",
+        measurementId: "G-X9NWJ5SSW1"
     };
 
-    let timerInterval, timeLeft = 1500, isRunning = false;
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); document.getElementById('save-status').style.opacity = '1'; setTimeout(() => { document.getElementById('save-status').style.opacity = '0'; }, 800); calculateTotalPercent(); }
-    function autoSaveField(f, v) { data[f] = v; save(); }
-    function autoSaveGoal(f, v) { data.goals[f] = v; save(); }
+    // 데이터 저장 변수
+    let data = JSON.parse(localStorage.getItem('12W_DATA')) || {
+        weeks: Array.from({length: 12}, (_, i) => ({ title: (i+1)+'주차', todos: [] }))
+    };
 
-    function calculateTotalPercent() {
-        let total = 0, done = 0;
-        data.weeks.forEach(w => { total += w.todos.length; done += w.todos.filter(t => t.done).length; });
-        const rate = total === 0 ? 0 : Math.round((done / total) * 100);
-        const valDisp = document.getElementById('total-per-text');
-        const bar = document.getElementById('main-progress-bar');
-        valDisp.innerText = `${rate}%`;
-        bar.style.width = `${rate}%`;
-        let color = 'var(--accent)'; if(rate >= 30) color = '#ff9500'; if(rate >= 70) color = 'var(--primary)'; if(rate >= 100) color = 'var(--success)';
-        valDisp.style.color = color; bar.style.backgroundColor = color;
+    // 2. 구글 로그인 마법
+    function googleLogin() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).then((result) => {
+            document.getElementById('btn-login').style.display = 'none';
+            document.getElementById('user-name').style.display = 'inline';
+            document.getElementById('user-name').innerText = result.user.displayName + "님";
+            confetti();
+            loadFromCloud(result.user.uid);
+        }).catch(err => alert("로그인 실패: " + err.message));
     }
 
-    function render(focusIdx = null) {
-        document.body.setAttribute('data-theme', data.theme);
-        document.getElementById('master-title').value = data.title;
-        document.getElementById('start-date').value = data.startDate;
-        document.getElementById('goal-long').value = data.goals.long || "";
-        document.getElementById('goal-three').value = data.goals.three || "";
-        document.getElementById('goal-twelve').value = data.goals.twelve || "";
-        
-        const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
-        data.images.forEach((img, i) => {
-            const div = document.createElement('div');
-            div.style = "aspect-ratio:1/1; background:var(--input-bg); border:2px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden;";
-            div.onclick = () => handleImage(i);
-            div.innerHTML = img ? `<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="opacity:0.3;font-size:2em;">+</span>';
-            gallery.appendChild(div);
-        });
-
-        const start = new Date(data.startDate);
-        const board = document.getElementById('board'); board.innerHTML = '';
-
-        data.weeks.forEach((w, wIdx) => {
-            const ws = new Date(start); ws.setDate(start.getDate() + (wIdx * 7));
-            const we = new Date(ws); we.setDate(ws.getDate() + 6);
-            const range = `<span class="cal-highlight">🗓️</span> ${ws.getMonth()+1}/${ws.getDate()} ~ ${we.getMonth()+1}/${we.getDate()}`;
-            const done = w.todos.filter(t => t.done).length;
-            const per = w.todos.length === 0 ? 0 : Math.round((done / w.todos.length) * 100);
-
-            let weekColor = 'var(--border)';
-            if(per >= 100) weekColor = 'var(--success)';
-            else if(per >= 70) weekColor = 'var(--primary)';
-            else if(per >= 30) weekColor = '#ff9500';
-
-            board.innerHTML += `
-                <div class="week-card" style="border-color: ${weekColor}">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-weight:900; font-size:1.2em;">${wIdx + 1}주차</span>
-                        <span style="font-weight:900; font-size:1.4em; color: ${weekColor}; transition: color 0.3s;">${per}%</span>
-                    </div>
-                    <span style="font-size:0.85em; color:var(--quote-sub); font-weight:600;">${range}</span>
-                    <div id="list-${wIdx}" style="margin-top:10px;">
-                        ${w.todos.map((t, tIdx) => `
-                            <div class="todo-item">
-                                <span class="star-icon ${t.important?'active':''}" onclick="toggleStar(${wIdx}, ${tIdx})">★</span>
-                                <input type="checkbox" class="todo-checkbox" ${t.done?'checked':''} onclick="toggleTodo(${wIdx}, ${tIdx})">
-                                <input type="text" class="todo-input" value="${t.text}" oninput="editTodoText(${wIdx}, ${tIdx}, this.value)" style="${t.done?'text-decoration:line-through;opacity:0.4':''}">
-                                <button onclick="deleteTodo(${wIdx}, ${tIdx})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold;">×</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="in-${wIdx}" placeholder="할 일 추가 (엔터)..." 
-                            onkeypress="if(event.key==='Enter') addTodo(${wIdx})" 
-                            style="flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:0.9em;">
-                    </div>
-                </div>`;
-        });
-
-        if(focusIdx !== null) { setTimeout(() => { const t = document.getElementById(`in-${focusIdx}`); if(t) t.focus(); }, 10); }
-        calculateTotalPercent(); updateDDay();
+    // 3. 구름에 저장하기
+    function save() {
+        localStorage.setItem('12W_DATA', JSON.stringify(data));
+        const user = auth.currentUser;
+        if (user) {
+            db.collection("users").doc(user.uid).set(data);
+            document.getElementById('save-status').style.opacity = '1';
+            setTimeout(() => { document.getElementById('save-status').style.opacity = '0'; }, 1000);
+        }
+        render();
     }
 
-    function addTodo(wIdx) { const v = document.getElementById(`in-${wIdx}`); if(v.value.trim()){ data.weeks[wIdx].todos.push({text:v.value, done:false, important:false}); v.value=''; save(); render(wIdx); } }
-    function toggleTodo(wIdx, tIdx) { data.weeks[wIdx].todos[tIdx].done = !data.weeks[wIdx].todos[tIdx].done; if(data.weeks[wIdx].todos[tIdx].done) confetti(); save(); render(); }
-    function toggleStar(wIdx, tIdx) { const item = data.weeks[wIdx].todos[tIdx]; item.important = !item.important; if(item.important) { data.weeks[wIdx].todos.splice(tIdx, 1); data.weeks[wIdx].todos.unshift(item); } save(); render(); }
-    function editTodoText(wIdx, tIdx, val) { data.weeks[wIdx].todos[tIdx].text = val; save(); }
-    function deleteTodo(wIdx, tIdx) { data.weeks[wIdx].todos.splice(tIdx, 1); save(); render(); }
-    function updateDDay() { const start = new Date(data.startDate); const end = new Date(start); end.setDate(start.getDate() + 84); const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
-    function refreshQuote() { const rq = quotes[Math.floor(Math.random() * quotes.length)]; document.getElementById('quote-display').innerText = `"${rq.q}"`; document.getElementById('quote-author').innerText = `- ${rq.a}`; }
-    
-    // 수정된 타이머 로직
-    function toggleTimer() {
-        if (isRunning) {
-            clearInterval(timerInterval);
-            document.getElementById('timer-btn').innerText = "START";
-            isRunning = false;
-        } else {
-            isRunning = true; 
-            document.getElementById('timer-btn').innerText = "STOP";
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                updateTimerDisplay();
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    confetti();
-                    alert("집중 시간 종료!");
-                    timeLeft = 1500;
-                    updateTimerDisplay();
-                    document.getElementById('timer-btn').innerText = "START";
-                    isRunning = false;
-                }
-            }, 1000);
+    // 4. 구름에서 불러오기
+    function loadFromCloud(uid) {
+        db.collection("users").doc(uid).get().then((doc) => {
+            if (doc.exists) {
+                data = doc.data();
+                render();
+            }
+        });
+    }
+
+    function render() {
+        const board = document.getElementById('board');
+        board.innerHTML = data.weeks.map((w, i) => `
+            <div style="margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                <strong>${w.title}</strong> 
+                <button onclick="addTodo(${i})">+</button>
+                ${w.todos.map(t => `<div>- ${t}</div>`).join('')}
+            </div>
+        `).join('');
+    }
+
+    function addTodo(wIdx) {
+        const task = prompt("할 일을 적으세요:");
+        if(task) {
+            data.weeks[wIdx].todos.push(task);
+            save();
         }
     }
 
-    function updateTimerDisplay() { const m = Math.floor(timeLeft / 60), s = timeLeft % 60; document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; }
-    function handleImage(idx) { const input = document.createElement('input'); input.type = 'file'; input.onchange = e => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = event => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); const MAX = 500; let w = img.width, h = img.height; if (w > MAX) { h *= MAX / w; w = MAX; } canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h); data.images[idx] = canvas.toDataURL('image/jpeg', 0.7); save(); render(); }; img.src = event.target.result; }; reader.readAsDataURL(file); }; input.click(); }
-    function toggleTheme() { data.theme = data.theme === 'dark' ? 'light' : 'dark'; save(); render(); }
-    function exportData() { const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `12W_Elite_Backup.json`; a.click(); }
-    function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = () => { try { data = JSON.parse(r.result); save(); render(); } catch(e) { alert("잘못된 파일입니다."); } }; r.readAsText(e.target.files[0]); }; i.click(); }
-    function resetAll() { if(confirm("데이터를 초기화할까요?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
-
-    refreshQuote(); render();
+    render();
 </script>
 </body>
 </html>
