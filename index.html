@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Ultra Stable V18.7</title>
+    <title>12-Week Masterpiece: Final Stable V18.8</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -25,11 +25,13 @@
         body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; padding-top: max(30px, env(safe-area-inset-top)); }
         .container { max-width: 1000px; margin: auto; }
         
+        /* 상단 헤더 & 로그인 */
         .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
         .title-zone { flex: 1; }
         .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 100%; outline: none; resize: none; overflow: hidden; min-height: 40px; line-height: 1.3; font-family: inherit; }
         .auth-btn { padding: 8px 15px; border-radius: 12px; border: none; cursor: pointer; font-weight: 800; font-size: 0.8em; white-space: nowrap; background: var(--primary); color: white; }
         
+        /* 대시보드 */
         .dashboard { display: grid; grid-template-columns: 1fr 1.8fr 1.5fr; gap: 12px; margin-bottom: 15px; }
         @media (max-width: 600px) { .dashboard { grid-template-columns: 1fr; } }
         .stat-card, .quote-card, .dual-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); transition: 0.3s; }
@@ -45,9 +47,11 @@
         .progress-bar-container { width: 100%; height: 8px; background: var(--border); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar-fill { height: 100%; width: 0%; transition: 0.6s ease; }
 
+        /* 주차별 나열 (4개씩 정렬) */
         .block-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
         @media (max-width: 800px) { .block-grid { grid-template-columns: repeat(2, 1fr); } }
         .block-card { background: var(--card); border-radius: 18px; padding: 20px; border: 3px solid var(--border); transition: 0.3s; cursor: pointer; text-align: center; }
+        .block-card:hover { transform: translateY(-5px); border-color: var(--primary); }
         .block-card h3 { margin: 0; font-size: 1.2em; font-weight: 900; }
         .block-date { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
 
@@ -177,7 +181,7 @@
     const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V18_7')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V18_8')) || { 
         theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], currentSeason: 1, history: [],
         weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
@@ -190,7 +194,7 @@
     auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; loadFromCloud(user.uid); } });
 
     function save() { 
-        localStorage.setItem('12W_V18_7', JSON.stringify(data)); 
+        localStorage.setItem('12W_V18_8', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) db.collection("users").doc(user.uid).set(data).then(() => { 
             const s=document.getElementById('save-status'); s.style.opacity='1'; setTimeout(()=>s.style.opacity='0',800); 
@@ -231,22 +235,36 @@
     function editTodo(wIdx, dIdx, tIdx, val) { data.weeks[wIdx].days[dIdx].todos[tIdx].text = val; }
     function deleteTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); }
 
-    // 기수 마감 저장 로직 (안정성 강화)
+    // 기수 마감 저장 로직 수리 (V18.8 안정화)
     function archiveSeason() {
         if(!confirm(`제 ${data.currentSeason}기를 마감하고 보관함에 저장할까요?`)) return;
-        try {
-            const seasonRecord = JSON.parse(JSON.stringify({ 
-                season: data.currentSeason, title: data.title, startDate: data.startDate, 
-                goals: data.goals, images: data.images, weeks: data.weeks 
-            }));
-            data.history.unshift(seasonRecord);
-            data.currentSeason += 1; data.startDate = new Date().toISOString().split('T')[0];
-            data.weeks = Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }));
-            confetti(); save();
-        } catch(e) { alert("저장 중 오류가 발생했습니다. 다시 시도해 주세요."); }
+        
+        // 데이터 안전 복제
+        const snapshot = {
+            season: data.currentSeason,
+            title: data.title,
+            startDate: data.startDate,
+            goals: {...data.goals},
+            images: [...data.images],
+            weeks: data.weeks.map(w => ({
+                ...w,
+                days: w.days.map(d => ({
+                    ...d,
+                    todos: d.todos.map(t => ({...t}))
+                }))
+            }))
+        };
+        
+        data.history.unshift(snapshot);
+        data.currentSeason += 1;
+        data.startDate = new Date().toISOString().split('T')[0];
+        data.weeks = Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }));
+        
+        confetti(); 
+        save();
     }
 
-    // 보관함 상세보기 복구
+    // 보관함 상세보기 수리
     function viewHistory(hIdx) {
         const h = data.history[hIdx];
         const container = document.getElementById('planner-container');
