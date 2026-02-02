@@ -25,22 +25,22 @@
         body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; padding-top: max(30px, env(safe-area-inset-top)); }
         .container { max-width: 1000px; margin: auto; }
         
-        /* [중요] 구름 저장 알림 - 화면 정중앙 상단에 크게 표시 */
+        /* [수정] 구름 저장 알림 스타일 - 무조건 가장 앞에 보이도록 수정 */
         #save-status { 
             position: fixed; 
-            top: 50px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            font-size: 1.1em; 
-            background: #34c759; /* 강제 초록색 */
+            top: 20px; 
+            right: 20px; 
+            font-size: 0.85em; 
+            background: var(--success); 
             color: white; 
-            padding: 12px 24px; 
+            padding: 8px 16px; 
             border-radius: 50px; 
-            display: none; /* 기본 숨김 */
-            z-index: 99999; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+            z-index: 9999; 
             font-weight: bold; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
@@ -69,6 +69,15 @@
         .block-card:hover { transform: translateY(-5px); border-color: var(--primary); }
         .block-card h3 { margin: 0; font-size: 1.2em; font-weight: 900; }
         .block-date { font-size: 0.75em; opacity: 0.7; margin-bottom: 5px; display: block; }
+
+        .vision-card { aspect-ratio:1/1; background:var(--input-bg); border:1px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; position: relative; }
+        .vision-card img { width: 100%; height: 100%; object-fit: cover; }
+        .img-controls { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; opacity: 0; transition: 0.2s; }
+        .vision-card:hover .img-controls { opacity: 1; }
+        .img-btn { background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 6px; padding: 4px 6px; font-size: 10px; cursor: pointer; }
+
+        #lightbox { display: none; position: fixed; z-index: 9500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; cursor: zoom-out; }
+        #lightbox img { max-width: 90%; max-height: 90%; border-radius: 15px; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
 
         .vision-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .vision-section summary { padding: 12px 15px; cursor: pointer; font-weight: bold; background: var(--border); opacity: 0.8; }
@@ -188,9 +197,7 @@
     const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    // [변경] 저장소 이름을 완전히 새롭게 바꿔서 충돌 방지 (12W_V20_FINAL)
-    const STORAGE_KEY = '12W_V20_FINAL';
-    let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V18_9')) || { 
         theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], currentSeason: 1, history: [],
         weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
@@ -209,25 +216,24 @@
         } 
     });
 
-    // [강력 수정] 메시지 표시 함수
+    // [수정] 무조건 구름 저장 완료가 보이도록 개선
     function showSaveCloud() {
         const s = document.getElementById('save-status');
-        s.style.display = 'block'; // 먼저 보이게 함
-        setTimeout(() => { s.style.display = 'none'; }, 2000); // 2초 뒤 숨김
+        s.style.opacity = '1';
+        setTimeout(() => { s.style.opacity = '0'; }, 1500);
     }
 
     function save() { 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); 
+        localStorage.setItem('12W_V18_9', JSON.stringify(data)); 
         const user = auth.currentUser;
         if(user) {
             db.collection("users").doc(user.uid).set(data).then(() => { showSaveCloud(); });
         } else {
-            showSaveCloud(); 
+            showSaveCloud(); // 로그인 안 되어있어도 로컬 저장 시 표시
         }
         render();
     }
 
-    // --- 나머지 렌더링 함수들 (기능 유지) ---
     function getStatusColor(per) { if(per >= 100) return 'var(--success)'; if(per >= 70) return 'var(--primary)'; if(per >= 30) return '#ff9500'; return 'var(--border)'; }
     function getWeekRangeText(baseDate, wIdx) {
         const start = new Date(baseDate);
@@ -238,27 +244,52 @@
     function zoomImage(src) { if(!src) return; document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').style.display = 'flex'; }
     function removeImage(idx) { if(confirm("사진을 삭제할까요?")) { data.images[idx] = null; save(); } }
     function resizeTitle(el) { if(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }
+
     function openModal(wIdx) { currentW = wIdx; openDays = {}; renderPlanner(wIdx); document.getElementById('planner-modal').style.display = "block"; }
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
-        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 계획`;
+        document.getElementById('modal-title').innerText = `${wIdx + 1}주차 계획 (${getWeekRangeText(data.startDate, wIdx)})`;
         container.innerHTML = dayNames.map((day, dIdx) => {
             const dayData = data.weeks[wIdx].days[dIdx];
+            dayData.todos.sort((a,b) => (a.important === b.important ? (a.done === b.done ? 0 : a.done ? 1 : -1) : a.important ? -1 : 1));
             const isActive = openDays[dIdx] ? 'active' : '';
-            return `<div class="day-section"><div class="day-header" onclick="toggleDay(${dIdx})"><span>📅 ${day}</span><span>${isActive ? '▲' : '▼'}</span></div><div class="day-content ${isActive}">${dayData.todos.map((t, tIdx) => `<div class="todo-item"><input type="checkbox" class="todo-check" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><input type="text" class="todo-input" value="${t.text}" oninput="editTodo(${wIdx},${dIdx},${tIdx},this.value)" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="${t.done?'text-decoration:line-through':''}"><button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent);">×</button></div>`).join('')}<input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 새 계획" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text);"></div></div>`;
+            return `<div class="day-section"><div class="day-header" onclick="toggleDay(${dIdx})"><span>📅 ${day}</span><span>${isActive ? '▲' : '▼'}</span></div><div class="day-content ${isActive}">${dayData.todos.map((t, tIdx) => `<div class="todo-item" style="${t.done?'opacity:0.5':''}"><span class="star-icon ${t.important?'active':''}" onclick="toggleStar(${wIdx},${dIdx},${tIdx})">★</span><input type="checkbox" class="todo-check" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><input type="text" class="todo-input" value="${t.text}" oninput="editTodo(${wIdx},${dIdx},${tIdx},this.value)" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="${t.done?'text-decoration:line-through':''}"><button onclick="deleteTodo(${wIdx},${dIdx},${tIdx})" style="border:none; background:none; color:var(--accent); cursor:pointer;">×</button></div>`).join('')}<input type="text" id="in-${wIdx}-${dIdx}" placeholder="+ 새 계획 (Enter)" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); box-sizing:border-box; margin-top:5px;"></div></div>`;
         }).join('');
     }
     function toggleDay(dIdx) { openDays[dIdx] = !openDays[dIdx]; renderPlanner(currentW); }
-    function closeModal() { document.getElementById('planner-modal').style.display = "none"; render(); }
-    function addTodo(wIdx, dIdx) { const v = document.getElementById(`in-${wIdx}-${dIdx}`); if(v.value.trim()){ data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false}); v.value = ''; renderPlanner(wIdx); save(); } }
-    function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); renderPlanner(wIdx); save(); }
+    function closeModal() { document.getElementById('planner-modal').style.display = "none"; openDays = {}; render(); }
+    function addTodo(wIdx, dIdx) { const v = document.getElementById(`in-${wIdx}-${dIdx}`); if(v.value.trim()){ data.weeks[wIdx].days[dIdx].todos.push({text: v.value, done: false, important: false}); v.value = ''; renderPlanner(wIdx); setTimeout(() => { const el = document.getElementById(`in-${wIdx}-${dIdx}`); if(el) el.focus(); }, 10); } }
+    function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); if(currentW !== null) renderPlanner(currentW); save(); }
+    function toggleStar(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].important = !data.weeks[wIdx].days[dIdx].todos[tIdx].important; renderPlanner(wIdx); save(); }
     function editTodo(wIdx, dIdx, tIdx, val) { data.weeks[wIdx].days[dIdx].todos[tIdx].text = val; }
     function deleteTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); }
 
+    function archiveSeason() {
+        if(!confirm(`제 ${data.currentSeason}기를 마감할까요?`)) return;
+        const snapshot = { season: data.currentSeason, title: data.title, startDate: data.startDate, goals: {...data.goals}, images: [...data.images], weeks: data.weeks.map(w => ({...w, days: w.days.map(d => ({...d, todos: d.todos.map(t => ({...t}))}))})) };
+        data.history.unshift(snapshot);
+        data.currentSeason += 1;
+        data.startDate = new Date().toISOString().split('T')[0];
+        data.weeks = Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }));
+        confetti(); save();
+    }
+
+    function viewHistory(hIdx) {
+        const h = data.history[hIdx];
+        const container = document.getElementById('planner-container');
+        document.getElementById('modal-title').innerText = `제 ${h.season}기 기록: ${h.title}`;
+        let total = 0, done = 0; h.weeks.forEach(w => w.days.forEach(d => { total += d.todos.length; done += d.todos.filter(t => t.done).length; }));
+        const per = total === 0 ? 0 : Math.round((done/total)*100);
+        container.innerHTML = `<div style="text-align:center; padding:15px; background:var(--input-bg); border-radius:15px; margin-bottom:15px;"><div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div></div><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px;">${h.images.map(img => `<div onclick="zoomImage('${img}')" style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee; cursor:pointer;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}</div>${h.weeks.map(w => { const wTasks = w.days.flatMap((d, dIdx) => d.todos.map(t => ({...t, day: dayNames[dIdx]}))); if(wTasks.length === 0) return ''; return `<div class="day-section"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>${w.title} 기록</span><span>▼</span></div><div class="day-content">${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-weight:900; color:var(--primary); min-width:40px;">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}</div></div>`; }).join('')}`;
+        document.getElementById('planner-modal').style.display = "block";
+    }
+
     function render() {
         document.body.setAttribute('data-theme', data.theme);
-        document.getElementById('master-title').value = data.title;
+        const titleInput = document.getElementById('master-title'); 
+        if(titleInput) { titleInput.value = data.title; resizeTitle(titleInput); }
         document.getElementById('start-date').value = data.startDate;
+        document.getElementById('season-display').innerText = `제 ${data.currentSeason}기 진행 중`;
         document.getElementById('goal-long').value = data.goals.long || "";
         document.getElementById('goal-three').value = data.goals.three || "";
         document.getElementById('goal-twelve').value = data.goals.twelve || "";
@@ -266,7 +297,7 @@
         const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
         data.images.forEach((img, i) => {
             const div = document.createElement('div'); div.className = 'vision-card';
-            if(img) div.innerHTML = `<img src="${img}" onclick="zoomImage('${img}')">`;
+            if(img) div.innerHTML = `<img src="${img}" onclick="zoomImage('${img}')"><div class="img-controls"><button class="img-btn" onclick="event.stopPropagation(); handleImage(${i})">🔄</button><button class="img-btn" onclick="event.stopPropagation(); removeImage(${i})">🗑️</button></div>`;
             else { div.innerHTML = '+'; div.onclick = () => handleImage(i); }
             gallery.appendChild(div);
         });
@@ -277,19 +308,52 @@
             let weekTotal = 0, weekDone = 0; w.days.forEach(d => { weekTotal += d.todos.length; weekDone += d.todos.filter(t => t.done).length; });
             const per = weekTotal === 0 ? 0 : Math.round((weekDone / weekTotal) * 100);
             totalAll += weekTotal; doneAll += weekDone;
-            board.innerHTML += `<div class="block-card" style="border-color:${getStatusColor(per)}" onclick="openModal(${wIdx})"><h3>${w.title}</h3><div style="font-size:1.5em; font-weight:900; color:${getStatusColor(per)};">${per}%</div></div>`;
+            board.innerHTML += `<div class="block-card" style="border-color:${getStatusColor(per)}" onclick="openModal(${wIdx})"><span class="block-date">${getWeekRangeText(data.startDate, wIdx)}</span><h3>${w.title}</h3><div style="font-size:1.5em; font-weight:900; color:${getStatusColor(per)}; margin:10px 0;">${per}%</div></div>`;
         });
         const totalRate = totalAll === 0 ? 0 : Math.round((doneAll / totalAll) * 100);
         document.getElementById('total-per-text').innerText = totalRate + '%';
         document.getElementById('main-progress-bar').style.width = totalRate + '%';
-        updateDDay();
+        document.getElementById('main-progress-bar').style.backgroundColor = getStatusColor(totalRate);
+        renderPendingList(); renderHistory(); updateDDay();
+    }
+
+    function renderPendingList() {
+        const container = document.getElementById('pending-container'); container.innerHTML = '';
+        data.weeks.forEach((w, wIdx) => {
+            w.days.forEach((d, dIdx) => {
+                d.todos.forEach((t, tIdx) => {
+                    if (!t.done) {
+                        const item = document.createElement('div');
+                        item.className = 'todo-item';
+                        item.innerHTML = `<span style="font-size:0.8em; font-weight:900; color:var(--primary); min-width:60px;">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check"><span style="flex:1;">${t.text}</span>`;
+                        item.querySelector('input').onclick = () => toggleTodo(wIdx, dIdx, tIdx);
+                        container.appendChild(item);
+                    }
+                });
+            });
+        });
+        if(container.innerHTML === '') container.innerHTML = '<p style="text-align:center; opacity:0.5;">완료!</p>';
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-grid'); container.innerHTML = '';
+        data.history.forEach((h, hIdx) => {
+            let hTotal = 0, hDone = 0; h.weeks.forEach(w => w.days.forEach(d => { hTotal += d.todos.length; hDone += d.todos.filter(t => t.done).length; }));
+            const per = hTotal === 0 ? 0 : Math.round((hDone / hTotal) * 100);
+            const card = document.createElement('div'); card.className = 'block-card'; card.style.borderColor = getStatusColor(per);
+            card.onclick = () => viewHistory(hIdx);
+            card.innerHTML = `<span class="block-date">${h.startDate}</span><h3>제 ${h.season}기</h3><div style="font-size:1.2em; font-weight:900; color:${getStatusColor(per)};">${per}%</div>`;
+            container.appendChild(card);
+        });
     }
 
     function autoSaveField(f, v) { data[f] = v; save(); }
     function autoSaveGoal(f, v) { data.goals[f] = v; save(); }
-    function updateDDay() { const start=new Date(data.startDate); const diff=Math.ceil(((new Date(start).setDate(new Date(start).getDate()+84))-new Date())/(1000*60*60*24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
+    function updateDDay() { const start=new Date(data.startDate); const end=new Date(start); end.setDate(start.getDate()+84); const diff=Math.ceil((end-new Date())/(1000*60*60*24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
     function refreshQuote() { const rq=quotes[Math.floor(Math.random()*quotes.length)]; document.getElementById('quote-display').innerText=`"${rq.q}"`; document.getElementById('quote-author').innerText=`- ${rq.a}`; }
-    function handleImage(idx) { const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const f=e.target.files[0]; const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); }; i.click(); }
+    function toggleTimer() { if(isRunning){ clearInterval(timerInterval); isRunning=false; document.getElementById('timer-btn').innerText="START"; } else { isRunning=true; document.getElementById('timer-btn').innerText="STOP"; timerInterval=setInterval(()=>{ timeLeft--; updateTimerDisp(); if(timeLeft<=0){ clearInterval(timerInterval); alert("끝!"); timeLeft=1500; updateTimerDisp(); isRunning=false; } }, 1000); } }
+    function updateTimerDisp() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timer').innerText=`${m}:${s<10?'0':''}${s}`; }
+    function handleImage(idx) { const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const f=e.target.files[0]; if(f.size > 2*1024*1024) { alert("2MB 이하 권장"); return; } const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); }; i.click(); }
     function toggleTheme() { data.theme = data.theme==='dark'?'light':'dark'; save(); }
     function resetAll() { if(confirm("초기화?")){ localStorage.clear(); location.reload(); } }
     
