@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Cloud Sync Edition</title>
+    <title>12-Week Masterpiece: Cloud Sync</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -24,6 +24,25 @@
 
         body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; padding-top: max(30px, env(safe-area-inset-top)); }
         .container { max-width: 1000px; margin: auto; }
+        
+        /* [수정] 구름 저장 알림 스타일 - 무조건 가장 앞에 보이도록 수정 */
+        #save-status { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            font-size: 0.85em; 
+            background: var(--success); 
+            color: white; 
+            padding: 8px 16px; 
+            border-radius: 50px; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+            z-index: 9999; 
+            font-weight: bold; 
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
         .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
         .title-zone { flex: 1; }
         .main-title-input { background: transparent; border: none; color: var(--text); font-size: 1.6em; font-weight: 900; width: 100%; outline: none; resize: none; overflow: hidden; min-height: 40px; line-height: 1.3; font-family: inherit; }
@@ -76,11 +95,9 @@
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-size: 1em; }
         .star-icon { cursor: pointer; color: #ccc; font-size: 1.2em; } .star-icon.active { color: var(--gold); }
         .todo-check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--success); }
-        .pending-tag { font-size: 0.85em; font-weight: 900; color: var(--primary); width: 75px; display: inline-block; background: var(--border); padding: 2px 6px; border-radius: 6px; text-align: center; margin-right: 10px; }
-
+        
         .dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 4000; }
         .dock-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; }
-        #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; background: var(--success); color: white; padding: 5px 15px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 6000; font-weight: bold; pointer-events: none; }
     </style>
 </head>
 <body data-theme="dark">
@@ -172,7 +189,6 @@
 </div>
 
 <script>
-    // [Source: 84, 90-91] 파이어베이스 설정 및 클라우드 동기화 핵심 로직 보존
     const firebaseConfig = { apiKey: "AIzaSyDUkSZV-F8u_WWlsm4DPiQlg4zEsN0hxvQ", authDomain: "week-project-29b17.firebaseapp.com", projectId: "week-project-29b17", storageBucket: "week-project-29b17.firebasestorage.app", messagingSenderId: "277326942781", appId: "1:277326942781:web:aef86a0c4bd94c4300d054", measurementId: "G-X9NWJ5SSW1" };
     firebase.initializeApp(firebaseConfig); 
     const auth = firebase.auth(); 
@@ -181,7 +197,6 @@
     const quotes = [{q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}, {q:"완벽을 기다리면 늦는다.", a:"리드 호프먼"}, {q:"속도가 완벽을 이긴다.", a:"스타트업 격언"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    // [Source: 86] 데이터 구조 유지
     let data = JSON.parse(localStorage.getItem('12W_V18_9')) || { 
         theme:'dark', title:"🏆 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], currentSeason: 1, history: [],
@@ -189,40 +204,36 @@
     };
     let currentW = null, openDays = {}, timerInterval, timeLeft = 1500, isRunning = false;
 
-    // [Source: 88-89] 구글 로그인 기능
     function googleLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function googleLogout() { auth.signOut().then(()=>location.reload()); }
 
-    // [Source: 92] 로그인 상태 감지 및 자동 동기화
     auth.onAuthStateChanged(user => { 
         if(user){ 
             document.getElementById('btn-login').style.display='none'; 
             document.getElementById('user-info').style.display='block'; 
             document.getElementById('user-name').innerText=user.displayName+'님'; 
-            db.collection("users").doc(user.uid).get().then(doc => { 
-                if(doc.exists){ 
-                    data=doc.data(); 
-                    render(); 
-                } 
-            }); 
+            db.collection("users").doc(user.uid).get().then(doc => { if(doc.exists){ data=doc.data(); render(); } }); 
         } 
     });
 
-    // [Source: 91] 저장 시 구름 알림 및 클라우드 업데이트
+    // [수정] 무조건 구름 저장 완료가 보이도록 개선
+    function showSaveCloud() {
+        const s = document.getElementById('save-status');
+        s.style.opacity = '1';
+        setTimeout(() => { s.style.opacity = '0'; }, 1500);
+    }
+
     function save() { 
         localStorage.setItem('12W_V18_9', JSON.stringify(data)); 
         const user = auth.currentUser;
         if(user) {
-            db.collection("users").doc(user.uid).set(data).then(() => { 
-                const s=document.getElementById('save-status'); 
-                s.style.opacity='1'; 
-                setTimeout(()=>s.style.opacity='0', 1500); 
-            });
+            db.collection("users").doc(user.uid).set(data).then(() => { showSaveCloud(); });
+        } else {
+            showSaveCloud(); // 로그인 안 되어있어도 로컬 저장 시 표시
         }
         render();
     }
 
-    // [Source: 93-117] 기존 핵심 렌더링 및 기능 로직 (수정 없이 보존)
     function getStatusColor(per) { if(per >= 100) return 'var(--success)'; if(per >= 70) return 'var(--primary)'; if(per >= 30) return '#ff9500'; return 'var(--border)'; }
     function getWeekRangeText(baseDate, wIdx) {
         const start = new Date(baseDate);
@@ -254,7 +265,7 @@
     function deleteTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); }
 
     function archiveSeason() {
-        if(!confirm(`제 ${data.currentSeason}기를 마감하고 보관함에 저장할까요?`)) return;
+        if(!confirm(`제 ${data.currentSeason}기를 마감할까요?`)) return;
         const snapshot = { season: data.currentSeason, title: data.title, startDate: data.startDate, goals: {...data.goals}, images: [...data.images], weeks: data.weeks.map(w => ({...w, days: w.days.map(d => ({...d, todos: d.todos.map(t => ({...t}))}))})) };
         data.history.unshift(snapshot);
         data.currentSeason += 1;
@@ -267,14 +278,12 @@
         const h = data.history[hIdx];
         const container = document.getElementById('planner-container');
         document.getElementById('modal-title').innerText = `제 ${h.season}기 기록: ${h.title}`;
-        let total = 0, done = 0;
-        h.weeks.forEach(w => w.days.forEach(d => { total += d.todos.length; done += d.todos.filter(t => t.done).length; }));
+        let total = 0, done = 0; h.weeks.forEach(w => w.days.forEach(d => { total += d.todos.length; done += d.todos.filter(t => t.done).length; }));
         const per = total === 0 ? 0 : Math.round((done/total)*100);
         container.innerHTML = `<div style="text-align:center; padding:15px; background:var(--input-bg); border-radius:15px; margin-bottom:15px;"><div style="font-size:2em; font-weight:900; color:${getStatusColor(per)}">${per}% 달성</div></div><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px;">${h.images.map(img => `<div onclick="zoomImage('${img}')" style="aspect-ratio:1/1; border-radius:8px; overflow:hidden; background:#eee; cursor:pointer;">${img?`<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}</div>`).join('')}</div>${h.weeks.map(w => { const wTasks = w.days.flatMap((d, dIdx) => d.todos.map(t => ({...t, day: dayNames[dIdx]}))); if(wTasks.length === 0) return ''; return `<div class="day-section"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>${w.title} 기록</span><span>▼</span></div><div class="day-content">${wTasks.map(t => `<div class="todo-item" style="opacity:0.7;"><span style="font-weight:900; color:var(--primary); min-width:40px;">${t.day[0]}</span><span style="flex:1; ${t.done?'text-decoration:line-through':''}">${t.text}</span><span>${t.done?'✅':'❌'}</span></div>`).join('')}</div></div>`; }).join('')}`;
         document.getElementById('planner-modal').style.display = "block";
     }
 
-    // [Source: 118-126] 렌더링 시스템 보존
     function render() {
         document.body.setAttribute('data-theme', data.theme);
         const titleInput = document.getElementById('master-title'); 
@@ -287,8 +296,7 @@
         
         const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
         data.images.forEach((img, i) => {
-            const div = document.createElement('div');
-            div.className = 'vision-card';
+            const div = document.createElement('div'); div.className = 'vision-card';
             if(img) div.innerHTML = `<img src="${img}" onclick="zoomImage('${img}')"><div class="img-controls"><button class="img-btn" onclick="event.stopPropagation(); handleImage(${i})">🔄</button><button class="img-btn" onclick="event.stopPropagation(); removeImage(${i})">🗑️</button></div>`;
             else { div.innerHTML = '+'; div.onclick = () => handleImage(i); }
             gallery.appendChild(div);
@@ -317,43 +325,39 @@
                     if (!t.done) {
                         const item = document.createElement('div');
                         item.className = 'todo-item';
-                        item.innerHTML = `<span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check"><span style="flex:1;">${t.text}</span>`;
+                        item.innerHTML = `<span style="font-size:0.8em; font-weight:900; color:var(--primary); min-width:60px;">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" class="todo-check"><span style="flex:1;">${t.text}</span>`;
                         item.querySelector('input').onclick = () => toggleTodo(wIdx, dIdx, tIdx);
                         container.appendChild(item);
                     }
                 });
             });
         });
-        if(container.innerHTML === '') container.innerHTML = '<p style="text-align:center; opacity:0.5;">모든 계획을 완료했습니다! 🎉</p>';
+        if(container.innerHTML === '') container.innerHTML = '<p style="text-align:center; opacity:0.5;">완료!</p>';
     }
 
     function renderHistory() {
         const container = document.getElementById('history-grid'); container.innerHTML = '';
-        if (data.history.length === 0) { container.innerHTML = '<p style="text-align:center; opacity:0.5; width:100%;">아직 보관된 기록이 없습니다.</p>'; return; }
         data.history.forEach((h, hIdx) => {
             let hTotal = 0, hDone = 0; h.weeks.forEach(w => w.days.forEach(d => { hTotal += d.todos.length; hDone += d.todos.filter(t => t.done).length; }));
             const per = hTotal === 0 ? 0 : Math.round((hDone / hTotal) * 100);
-            const card = document.createElement('div'); card.className = 'block-card';
-            card.style.borderColor = getStatusColor(per);
+            const card = document.createElement('div'); card.className = 'block-card'; card.style.borderColor = getStatusColor(per);
             card.onclick = () => viewHistory(hIdx);
             card.innerHTML = `<span class="block-date">${h.startDate}</span><h3>제 ${h.season}기</h3><div style="font-size:1.2em; font-weight:900; color:${getStatusColor(per)};">${per}%</div>`;
             container.appendChild(card);
         });
     }
 
-    // [Source: 135-145] 유틸리티 기능 보존
     function autoSaveField(f, v) { data[f] = v; save(); }
     function autoSaveGoal(f, v) { data.goals[f] = v; save(); }
     function updateDDay() { const start=new Date(data.startDate); const end=new Date(start); end.setDate(start.getDate()+84); const diff=Math.ceil((end-new Date())/(1000*60*60*24)); document.getElementById('dday-display').innerText = diff > 0 ? `D-${diff}` : "🏁"; }
     function refreshQuote() { const rq=quotes[Math.floor(Math.random()*quotes.length)]; document.getElementById('quote-display').innerText=`"${rq.q}"`; document.getElementById('quote-author').innerText=`- ${rq.a}`; }
-    function toggleTimer() { if(isRunning){ clearInterval(timerInterval); isRunning=false; document.getElementById('timer-btn').innerText="START"; } else { isRunning=true; document.getElementById('timer-btn').innerText="STOP"; timerInterval=setInterval(()=>{ timeLeft--; updateTimerDisp(); if(timeLeft<=0){ clearInterval(timerInterval); alert("집중 끝!"); timeLeft=1500; updateTimerDisp(); isRunning=false; } }, 1000); } }
+    function toggleTimer() { if(isRunning){ clearInterval(timerInterval); isRunning=false; document.getElementById('timer-btn').innerText="START"; } else { isRunning=true; document.getElementById('timer-btn').innerText="STOP"; timerInterval=setInterval(()=>{ timeLeft--; updateTimerDisp(); if(timeLeft<=0){ clearInterval(timerInterval); alert("끝!"); timeLeft=1500; updateTimerDisp(); isRunning=false; } }, 1000); } }
     function updateTimerDisp() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timer').innerText=`${m}:${s<10?'0':''}${s}`; }
-    function handleImage(idx) { const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const f=e.target.files[0]; if(f.size > 2*1024*1024) { alert("이미지 용량이 너무 큽니다. (2MB 이하 권장)"); return; } const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); }; i.click(); }
+    function handleImage(idx) { const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const f=e.target.files[0]; if(f.size > 2*1024*1024) { alert("2MB 이하 권장"); return; } const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); }; i.click(); }
     function toggleTheme() { data.theme = data.theme==='dark'?'light':'dark'; save(); }
-    function resetAll() { if(confirm("초기화할까요?")){ localStorage.clear(); location.reload(); } }
+    function resetAll() { if(confirm("초기화?")){ localStorage.clear(); location.reload(); } }
     
-    refreshQuote(); 
-    render();
+    refreshQuote(); render();
 </script>
 </body>
 </html>
