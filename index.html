@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Full Sync V26.5</title>
+    <title>12-Week Masterpiece: Cloud Sync Final</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -25,7 +25,7 @@
         body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; padding-top: max(30px, env(safe-area-inset-top)); }
         .container { max-width: 1000px; margin: auto; }
         
-        /* [추가] 구름 저장 알림 메시지 스타일 */
+        /* 구름 저장 상태 알림 */
         #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; background: var(--success); color: white; padding: 5px 15px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 9999; font-weight: bold; pointer-events: none; }
 
         .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
@@ -72,11 +72,10 @@
         .day-content { padding: 10px; display: none; }
         .day-content.active { display: block; }
         
-        .todo-item { display: flex; align-items: center; background: var(--card); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; gap: 8px; border: 1px solid var(--border); transition: 0.2s; }
+        .todo-item { display: flex; align-items: center; background: var(--card); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; gap: 8px; border: 1px solid var(--border); }
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-size: 1em; }
         .star-icon { cursor: pointer; color: #ccc; font-size: 1.2em; transition: 0.2s; } .star-icon.active { color: var(--gold); }
         .delete-btn { border:none; background:none; color:var(--accent); cursor:pointer; font-size: 1.2em; padding: 0 5px; }
-        .pending-tag { font-size: 0.85em; font-weight: 900; color: var(--primary); width: 75px; display: inline-block; background: var(--border); padding: 2px 6px; border-radius: 6px; text-align: center; margin-right: 10px; }
 
         .dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 4000; }
         .dock-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; }
@@ -163,13 +162,14 @@
 </div>
 
 <script>
+    // [보존] 파이어베이스 설정
     const firebaseConfig = { apiKey: "AIzaSyDUkSZV-F8u_WWlsm4DPiQlg4zEsN0hxvQ", authDomain: "week-project-29b17.firebaseapp.com", projectId: "week-project-29b17", storageBucket: "week-project-29b17.firebasestorage.app", messagingSenderId: "277326942781", appId: "1:277326942781:web:aef86a0c4bd94c4300d054", measurementId: "G-X9NWJ5SSW1" };
     firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore();
     
     const quotes = [{q:"이봐, 해봤어?", a:"정주영"}, {q:"시련은 있어도 실패는 없다.", a:"정주영"}, {q:"하면 된다.", a:"정주영"}, {q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V26_Final')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_Master_Data')) || { 
         theme:'dark', title:"🏆 나의 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], currentSeason: 1, history: [],
         weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
@@ -177,9 +177,9 @@
     
     let currentW = null, openDays = {}, timerInterval, timeLeft = 1500, isRunning = false;
 
-    // [핵심] 기기간 동기화 & 구름 저장 알림 로직
+    // [보완] 동기화 및 구름 저장 알림 로직
     function save() { 
-        localStorage.setItem('12W_V26_Final', JSON.stringify(data)); 
+        localStorage.setItem('12W_Master_Data', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) {
             db.collection("users").doc(user.uid).set(data).then(() => { 
@@ -191,7 +191,23 @@
         render();
     }
 
-    // [핵심] 엔터 추가 기능 복구 및 독립 요일 토글
+    // [보완] 멀티 기기 데이터 동기화
+    auth.onAuthStateChanged(user => { 
+        if(user){ 
+            document.getElementById('btn-login').style.display='none'; 
+            document.getElementById('user-info').style.display='block'; 
+            document.getElementById('user-name').innerText=user.displayName+'님'; 
+            
+            db.collection("users").doc(user.uid).get().then(doc => { 
+                if(doc.exists){ 
+                    data = doc.data(); 
+                    render(); 
+                } 
+            });
+        } 
+    });
+
+    // [보존] ver12의 모든 기능들
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
         document.getElementById('modal-title').innerText = `${wIdx + 1}주차 계획`;
@@ -205,7 +221,7 @@
                     ${dayData.todos.map((t, tIdx) => `<div class="todo-item" style="opacity:${t.done?0.5:1}">
                         <span class="star-icon ${t.important?'active':''}" onclick="toggleStar(${wIdx},${dIdx},${tIdx})">★</span>
                         <input type="checkbox" ${t.done?'checked':''} onclick="toggleTodo(${wIdx},${dIdx},${tIdx})">
-                        <input type="text" class="todo-input" value="${t.text}" oninput="data.weeks[${wIdx}].days[${dIdx}].todos[${tIdx}].text=this.value" onkeypress="if(event.key==='Enter') save()" style="${t.done?'text-decoration:line-through':''}">
+                        <input type="text" class="todo-input" value="${t.text}" oninput="data.weeks[${wIdx}].days[${dIdx}].todos[${tIdx}].text=this.value" style="${t.done?'text-decoration:line-through':''}">
                         <button class="delete-btn" onclick="deleteTodo(${wIdx},${dIdx},${tIdx})">×</button>
                     </div>`).join('')}
                     <input type="text" id="add-${dIdx}" placeholder="+ 할 일 추가 (Enter)" onkeypress="if(event.key==='Enter') addTodo(${wIdx},${dIdx})" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); margin-top:5px; background:var(--card); color:var(--text);">
@@ -257,8 +273,7 @@
         data.weeks.forEach((w, wIdx) => w.days.forEach((d, dIdx) => d.todos.forEach((t, tIdx) => {
             if(!t.done) {
                 const item = document.createElement('div'); item.className = 'todo-item';
-                item.innerHTML = `<span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox"><span style="flex:1;">${t.text}</span>`;
-                item.querySelector('input').onclick = () => toggleTodo(wIdx, dIdx, tIdx);
+                item.innerHTML = `<span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox" onclick="toggleTodo(${wIdx},${dIdx},${tIdx})"><span style="flex:1;">${t.text}</span>`;
                 pending.appendChild(item);
             }
         })));
@@ -268,7 +283,7 @@
         updateDDay();
     }
 
-    auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; db.collection("users").doc(user.uid).get().then(doc => { if(doc.exists){ data=doc.data(); render(); } }); } });
+    // 기본 함수들 보존
     function googleLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function googleLogout() { auth.signOut().then(()=>location.reload()); }
     function toggleDay(dIdx) { openDays[dIdx] = !openDays[dIdx]; renderPlanner(currentW); }
@@ -288,6 +303,7 @@
     function updateTimerDisp() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timer').innerText=`${m}:${s<10?'0':''}${s}`; }
     function toggleTheme() { data.theme = data.theme==='dark'?'light':'dark'; save(); }
     function resetAll() { if(confirm("초기화할까요?")){ localStorage.clear(); location.reload(); } }
+    
     refreshQuote(); render();
 </script>
 </body>
