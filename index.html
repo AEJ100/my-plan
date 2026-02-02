@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Perfect Sync V25.1</title>
+    <title>12-Week Masterpiece: Perfect Sync V25.5</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -25,7 +25,7 @@
         body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; padding-top: max(30px, env(safe-area-inset-top)); }
         .container { max-width: 1000px; margin: auto; }
         
-        /* 구름 저장 상태 알림창 (추가됨) */
+        /* [추가] 구름 저장 알림창 */
         #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; background: var(--success); color: white; padding: 5px 15px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 9999; font-weight: bold; pointer-events: none; }
 
         .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
@@ -150,11 +150,10 @@
     const firebaseConfig = { apiKey: "AIzaSyDUkSZV-F8u_WWlsm4DPiQlg4zEsN0hxvQ", authDomain: "week-project-29b17.firebaseapp.com", projectId: "week-project-29b17", storageBucket: "week-project-29b17.firebasestorage.app", messagingSenderId: "277326942781", appId: "1:277326942781:web:aef86a0c4bd94c4300d054", measurementId: "G-X9NWJ5SSW1" };
     firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore();
     
-    // 명언 150개 분량 로직 유지
     const quotes = [{q:"이봐, 해봤어?", a:"정주영"}, {q:"시련은 있어도 실패는 없다.", a:"정주영"}, {q:"하면 된다.", a:"정주영"}, {q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V25_1_Final')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V25_Final')) || { 
         theme:'dark', title:"🏆 나의 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], currentSeason: 1, history: [],
         weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
@@ -162,9 +161,9 @@
     
     let currentW = null, openDays = {}, timerInterval, timeLeft = 1500, isRunning = false;
 
-    // [동기화 알림] PC/폰 실시간 저장 알림 로직
+    // [핵심] 기기간 실시간 동기화 & 알림
     function save() { 
-        localStorage.setItem('12W_V25_1_Final', JSON.stringify(data)); 
+        localStorage.setItem('12W_V25_Final', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) {
             db.collection("users").doc(user.uid).set(data).then(() => { 
@@ -176,7 +175,7 @@
         render();
     }
 
-    // [엔터 추가] ver12의 디자인 유지하며 기능만 정확히 연결
+    // [핵심] 엔터 추가 기능 복구
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
         document.getElementById('modal-title').innerText = `${wIdx + 1}주차 계획`;
@@ -206,7 +205,7 @@
         }
     }
 
-    // [사진 업로드] ver12 원본 로직 유지
+    // [핵심] 사진 업로드 로직
     function handleImage(idx) { 
         const i=document.createElement('input'); i.type='file'; 
         i.onchange=e=>{ 
@@ -215,7 +214,6 @@
         }; i.click(); 
     }
 
-    // 초기 로드 및 공통 기능
     auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; db.collection("users").doc(user.uid).get().then(doc => { if(doc.exists){ data=doc.data(); render(); } }); } });
     function googleLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function googleLogout() { auth.signOut().then(()=>location.reload()); }
@@ -230,7 +228,8 @@
     function zoomImage(src) { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').style.display = 'flex'; }
     function resizeTitle(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
     function refreshQuote() { const rq=quotes[Math.floor(Math.random()*quotes.length)]; document.getElementById('quote-display').innerText=`"${rq.q}"`; document.getElementById('quote-author').innerText=`- ${rq.a}`; }
-    function toggleTimer() { /* ver12 원본 로직 */ }
+    function toggleTimer() { if(isRunning){ clearInterval(timerInterval); isRunning=false; document.getElementById('timer-btn').innerText="START"; } else { isRunning=true; document.getElementById('timer-btn').innerText="STOP"; timerInterval=setInterval(()=>{ timeLeft--; updateTimerDisp(); if(timeLeft<=0){ clearInterval(timerInterval); alert("집중 끝!"); timeLeft=1500; updateTimerDisp(); isRunning=false; } }, 1000); } }
+    function updateTimerDisp() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timer').innerText=`${m}:${s<10?'0':''}${s}`; }
     function toggleTheme() { data.theme = data.theme==='dark'?'light':'dark'; save(); }
 
     function render() {
