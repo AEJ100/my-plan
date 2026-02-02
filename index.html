@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>12-Week Masterpiece: Perfect Sync V25.5</title>
+    <title>12-Week Masterpiece: Full Original V26.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -25,7 +25,7 @@
         body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background-color: var(--bg); color: var(--text); padding-bottom: 120px; transition: 0.3s; padding-top: max(30px, env(safe-area-inset-top)); }
         .container { max-width: 1000px; margin: auto; }
         
-        /* [추가] 구름 저장 알림창 */
+        /* [구름 저장 알림] 디자인 보존을 위해 투명하게 띄움 */
         #save-status { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; background: var(--success); color: white; padding: 5px 15px; border-radius: 20px; opacity: 0; transition: 0.5s; z-index: 9999; font-weight: bold; pointer-events: none; }
 
         .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
@@ -76,6 +76,7 @@
         .todo-input { flex: 1; border: none; background: transparent; color: var(--text); outline: none; font-size: 1em; }
         .star-icon { cursor: pointer; color: #ccc; font-size: 1.2em; transition: 0.2s; } .star-icon.active { color: var(--gold); }
         .delete-btn { border:none; background:none; color:var(--accent); cursor:pointer; font-size: 1.2em; padding: 0 5px; }
+        .pending-tag { font-size: 0.85em; font-weight: 900; color: var(--primary); width: 75px; display: inline-block; background: var(--border); padding: 2px 6px; border-radius: 6px; text-align: center; margin-right: 10px; }
 
         .dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); z-index: 4000; }
         .dock-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; }
@@ -144,16 +145,32 @@
     </details>
 
     <div class="block-grid" id="board"></div>
+
+    <details class="vision-section" id="pending-section" open>
+        <summary>📌 미완료 리스트 모아보기</summary>
+        <div id="pending-container" style="padding: 20px;"></div>
+    </details>
+
+    <details class="vision-section" open>
+        <summary>📜 지나간 기수 기록 (보관함)</summary>
+        <div id="history-grid" class="block-grid" style="padding: 20px;"></div>
+    </details>
+</div>
+
+<div class="dock">
+    <button class="dock-btn" onclick="toggleTheme()">🌓</button>
+    <button class="dock-btn" onclick="resetAll()" style="color:var(--accent);">🧹</button>
 </div>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyDUkSZV-F8u_WWlsm4DPiQlg4zEsN0hxvQ", authDomain: "week-project-29b17.firebaseapp.com", projectId: "week-project-29b17", storageBucket: "week-project-29b17.firebasestorage.app", messagingSenderId: "277326942781", appId: "1:277326942781:web:aef86a0c4bd94c4300d054", measurementId: "G-X9NWJ5SSW1" };
     firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore();
     
+    // 명언 로직
     const quotes = [{q:"이봐, 해봤어?", a:"정주영"}, {q:"시련은 있어도 실패는 없다.", a:"정주영"}, {q:"하면 된다.", a:"정주영"}, {q:"실행은 모든 것을 이긴다.", a:"마크 저커버그"}];
     const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
 
-    let data = JSON.parse(localStorage.getItem('12W_V25_Final')) || { 
+    let data = JSON.parse(localStorage.getItem('12W_V26_Final')) || { 
         theme:'dark', title:"🏆 나의 12주 마스터피스", startDate:new Date().toISOString().split('T')[0], 
         goals:{long:"", three:"", twelve:""}, images:[null,null,null], currentSeason: 1, history: [],
         weeks: Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }))
@@ -161,9 +178,9 @@
     
     let currentW = null, openDays = {}, timerInterval, timeLeft = 1500, isRunning = false;
 
-    // [핵심] 기기간 실시간 동기화 & 알림
+    // [동기화&알림]
     function save() { 
-        localStorage.setItem('12W_V25_Final', JSON.stringify(data)); 
+        localStorage.setItem('12W_V26_Final', JSON.stringify(data)); 
         const user = auth.currentUser; 
         if(user) {
             db.collection("users").doc(user.uid).set(data).then(() => { 
@@ -175,7 +192,7 @@
         render();
     }
 
-    // [핵심] 엔터 추가 기능 복구
+    // [엔터추가&독립토글]
     function renderPlanner(wIdx) {
         const container = document.getElementById('planner-container');
         document.getElementById('modal-title').innerText = `${wIdx + 1}주차 계획`;
@@ -205,33 +222,17 @@
         }
     }
 
-    // [핵심] 사진 업로드 로직
-    function handleImage(idx) { 
-        const i=document.createElement('input'); i.type='file'; 
-        i.onchange=e=>{ 
-            const f=e.target.files[0]; if(f.size > 2*1024*1024) { alert("2MB 이하 사진만 가능해요!"); return; }
-            const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); 
-        }; i.click(); 
+    // [기수마감 로직]
+    function archiveSeason() {
+        if(!confirm("이번 기수를 마감할까요?")) return;
+        const snapshot = JSON.parse(JSON.stringify({ season: data.currentSeason, title: data.title, startDate: data.startDate, goals: data.goals, images: data.images, weeks: data.weeks }));
+        data.history.unshift(snapshot);
+        data.currentSeason++; data.startDate = new Date().toISOString().split('T')[0];
+        data.weeks = Array.from({length:12}, (_, i) => ({ title: (i+1) + "주차", days: Array.from({length:7}, () => ({ todos: [] })) }));
+        confetti(); save();
     }
 
-    auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; db.collection("users").doc(user.uid).get().then(doc => { if(doc.exists){ data=doc.data(); render(); } }); } });
-    function googleLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    function googleLogout() { auth.signOut().then(()=>location.reload()); }
-    function toggleDay(dIdx) { openDays[dIdx] = !openDays[dIdx]; renderPlanner(currentW); }
-    function openModal(wIdx) { currentW = wIdx; openDays = {}; renderPlanner(wIdx); document.getElementById('planner-modal').style.display = "block"; }
-    function closeModal() { document.getElementById('planner-modal').style.display = "none"; render(); }
-    function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); renderPlanner(wIdx); save(); }
-    function toggleStar(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].important = !data.weeks[wIdx].days[dIdx].todos[tIdx].important; renderPlanner(wIdx); save(); }
-    function deleteTodo(wIdx, dIdx, tIdx) { if(confirm("삭제할까요?")) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); } }
-    function autoSaveField(f, v) { data[f] = v; save(); }
-    function autoSaveGoal(f, v) { data.goals[f] = v; save(); }
-    function zoomImage(src) { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').style.display = 'flex'; }
-    function resizeTitle(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
-    function refreshQuote() { const rq=quotes[Math.floor(Math.random()*quotes.length)]; document.getElementById('quote-display').innerText=`"${rq.q}"`; document.getElementById('quote-author').innerText=`- ${rq.a}`; }
-    function toggleTimer() { if(isRunning){ clearInterval(timerInterval); isRunning=false; document.getElementById('timer-btn').innerText="START"; } else { isRunning=true; document.getElementById('timer-btn').innerText="STOP"; timerInterval=setInterval(()=>{ timeLeft--; updateTimerDisp(); if(timeLeft<=0){ clearInterval(timerInterval); alert("집중 끝!"); timeLeft=1500; updateTimerDisp(); isRunning=false; } }, 1000); } }
-    function updateTimerDisp() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timer').innerText=`${m}:${s<10?'0':''}${s}`; }
-    function toggleTheme() { data.theme = data.theme==='dark'?'light':'dark'; save(); }
-
+    // [메인 렌더링]
     function render() {
         document.body.setAttribute('data-theme', data.theme);
         document.getElementById('master-title').value = data.title;
@@ -239,8 +240,12 @@
         document.getElementById('season-display').innerText = `제 ${data.currentSeason}기 진행 중`;
         document.getElementById('goal-long').value = data.goals.long || "";
         document.getElementById('goal-twelve').value = data.goals.twelve || "";
+        
+        // 비전보드
         const gallery = document.getElementById('vision-gallery'); gallery.innerHTML = '';
         data.images.forEach((img, i) => { gallery.innerHTML += `<div class="vision-card" onclick="${img ? 'zoomImage(this.firstChild.src)' : 'handleImage('+i+')'}">${img ? `<img src="${img}"><div class="img-controls"><button class="img-btn" onclick="event.stopPropagation(); handleImage(${i})">🔄</button></div>` : '+'}</div>`; });
+        
+        // 주차별 보드
         const board = document.getElementById('board'); board.innerHTML = '';
         let totalT = 0, doneT = 0;
         data.weeks.forEach((w, wIdx) => {
@@ -252,7 +257,43 @@
         const totalR = totalT === 0 ? 0 : Math.round((doneT / totalT) * 100);
         document.getElementById('total-per-text').innerText = totalR + '%';
         document.getElementById('main-progress-bar').style.width = totalR + '%';
+
+        // 미완료 리스트 모아보기
+        const pending = document.getElementById('pending-container'); pending.innerHTML = '';
+        data.weeks.forEach((w, wIdx) => w.days.forEach((d, dIdx) => d.todos.forEach((t, tIdx) => {
+            if(!t.done) {
+                const item = document.createElement('div'); item.className = 'todo-item';
+                item.innerHTML = `<span class="pending-tag">${wIdx+1}주-${dayNames[dIdx][0]}</span><input type="checkbox"><span style="flex:1;">${t.text}</span>`;
+                item.querySelector('input').onclick = () => toggleTodo(wIdx, dIdx, tIdx);
+                pending.appendChild(item);
+            }
+        })));
+
+        // 보관함
+        const history = document.getElementById('history-grid'); history.innerHTML = '';
+        data.history.forEach((h, hIdx) => { history.innerHTML += `<div class="block-card"><span>${h.startDate}</span><h3>제 ${h.season}기</h3></div>`; });
     }
+
+    // 기본 함수들
+    auth.onAuthStateChanged(user => { if(user){ document.getElementById('btn-login').style.display='none'; document.getElementById('user-info').style.display='block'; document.getElementById('user-name').innerText=user.displayName+'님'; db.collection("users").doc(user.uid).get().then(doc => { if(doc.exists){ data=doc.data(); render(); } }); } });
+    function googleLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    function googleLogout() { auth.signOut().then(()=>location.reload()); }
+    function toggleDay(dIdx) { openDays[dIdx] = !openDays[dIdx]; renderPlanner(currentW); }
+    function openModal(wIdx) { currentW = wIdx; openDays = {}; renderPlanner(wIdx); document.getElementById('planner-modal').style.display = "block"; }
+    function closeModal() { document.getElementById('planner-modal').style.display = "none"; render(); }
+    function toggleTodo(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].done = !data.weeks[wIdx].days[dIdx].todos[tIdx].done; if(data.weeks[wIdx].days[dIdx].todos[tIdx].done) confetti(); renderPlanner(wIdx); save(); }
+    function toggleStar(wIdx, dIdx, tIdx) { data.weeks[wIdx].days[dIdx].todos[tIdx].important = !data.weeks[wIdx].days[dIdx].todos[tIdx].important; renderPlanner(wIdx); save(); }
+    function deleteTodo(wIdx, dIdx, tIdx) { if(confirm("삭제할까요?")) { data.weeks[wIdx].days[dIdx].todos.splice(tIdx, 1); renderPlanner(wIdx); save(); } }
+    function handleImage(idx) { const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const f=e.target.files[0]; if(f.size > 2*1024*1024) { alert("2MB 이하 사진만 가능해요!"); return; } const r=new FileReader(); r.onload=ev=>{ data.images[idx]=ev.target.result; save(); }; r.readAsDataURL(f); }; i.click(); }
+    function zoomImage(src) { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').style.display = 'flex'; }
+    function autoSaveField(f, v) { data[f] = v; save(); }
+    function autoSaveGoal(f, v) { data.goals[f] = v; save(); }
+    function resizeTitle(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+    function refreshQuote() { const rq=quotes[Math.floor(Math.random()*quotes.length)]; document.getElementById('quote-display').innerText=`"${rq.q}"`; document.getElementById('quote-author').innerText=`- ${rq.a}`; }
+    function toggleTimer() { if(isRunning){ clearInterval(timerInterval); isRunning=false; document.getElementById('timer-btn').innerText="START"; } else { isRunning=true; document.getElementById('timer-btn').innerText="STOP"; timerInterval=setInterval(()=>{ timeLeft--; updateTimerDisp(); if(timeLeft<=0){ clearInterval(timerInterval); alert("집중 끝!"); timeLeft=1500; updateTimerDisp(); isRunning=false; } }, 1000); } }
+    function updateTimerDisp() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timer').innerText=`${m}:${s<10?'0':''}${s}`; }
+    function toggleTheme() { data.theme = data.theme==='dark'?'light':'dark'; save(); }
+    function resetAll() { if(confirm("초기화할까요?")){ localStorage.clear(); location.reload(); } }
     refreshQuote(); render();
 </script>
 </body>
